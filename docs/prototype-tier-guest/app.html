@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1">
+<title>Z-Manager | Table Detail — Interactive Prototype</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:#000;height:100%;display:flex;align-items:center;justify-content:center}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;width:1280px;height:800px;overflow:hidden;position:relative;background:#f5f5f5;-webkit-font-smoothing:antialiased;flex-shrink:0;border-radius:4px}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input{font-family:inherit;outline:none;border:none}
+
+/* ═══ BASE IMAGE LAYER ═══ */
+.base{position:absolute;inset:0;width:1280px;height:800px}
+.base img{width:1280px;height:800px;display:block}
+
+/* ═══ MAIN CONTENT OVERLAY (covers image below header) ═══ */
+.mc{position:absolute;left:0;top:170px;right:0;bottom:40px;z-index:5;background:#f5f5f5;display:flex;gap:20px;padding:12px 28px 0}
+.mc-left{flex:1;overflow-y:auto}
+.mc-right{width:370px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+
+/* ── Order Cards ── */
+.oc{border-radius:16px;border:1px solid #d7d7d7;margin-bottom:12px;overflow:hidden}
+.oc .hd{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#e0e0e0;border-bottom:1px solid #d7d7d7}
+.oc .oid{font-size:22px;color:#bbb;font-weight:700;line-height:26px}
+.oc .tm{font-size:18px;color:#999;margin-left:16px;font-weight:400;line-height:22px}
+.oc .cfm{padding:0 16px;height:40px;border-radius:8px;border:none;font-size:20px;font-weight:500;color:#bbb;background:#d7d7d7;display:flex;align-items:center;justify-content:center;line-height:24px}
+.oc-body{padding:20px;background:#ebebeb;display:flex;flex-direction:column;gap:16px}
+.oi{display:flex;align-items:center;justify-content:space-between}
+.oi .il{display:flex;align-items:center;gap:16px;width:440px}
+.oi .q{width:47px;height:32px;border-radius:6px;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#777;font-weight:500;flex-shrink:0;line-height:24px}
+.oi .n{font-size:20px;font-weight:500;color:#555;line-height:24px}
+.oi .u{font-size:22px;font-weight:500;color:#999;text-align:right;line-height:26px}
+.oi .t{font-size:22px;font-weight:700;color:#555;text-align:right;line-height:26px}
+
+/* ── Right Panel Cards ── */
+.rp-card{background:#fff;border-radius:12px;border:1px solid #ededed;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:box-shadow .12s}
+.rp-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.rp-card .lft{display:flex;align-items:center;gap:8px}
+.rp-card .ico{width:20px;height:20px;flex-shrink:0}
+.rp-card .txt{font-size:20px;color:#555;font-weight:500;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:24px}
+.rp-card .edt{font-size:20px;color:#333;font-weight:500;text-decoration:underline;line-height:24px}
+.rp-sum{background:#fff;border-radius:12px;border:1px solid #ededed;padding:20px}
+.rp-row{display:flex;justify-content:space-between;padding:8px 0;font-size:20px;font-weight:500;color:#555;line-height:24px}
+.rp-row.disc{color:#F72E13;font-weight:500}
+.rp-row.total{border-top:1px solid #ededed;margin-top:8px;padding-top:16px;font-weight:700;color:#333}
+.rp-row.total .v{font-size:28px;font-weight:700;line-height:34px}
+.rp-reset{width:100%;height:56px;border-radius:12px;background:#F72E13;color:#fff;font-size:22px;font-weight:500;text-align:center;transition:opacity .12s;margin-top:10px;display:flex;align-items:center;justify-content:center;line-height:26px}
+.rp-reset:hover{opacity:.9}
+
+/* ═══ SNACKBAR ═══ */
+.snk{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;align-items:center;gap:12px;padding:24px 40px;border-radius:12px;background:rgba(0,0,0,.9);color:#fff;font-size:26px;font-weight:500;z-index:600;white-space:nowrap}
+.snk.show{display:flex}
+.snk .ico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.snk .ico.ok{background:#27ae60;color:#fff}
+.snk .ico.er{background:#F72E13;color:#fff}
+.fade-in{animation:fi .25s ease}
+@keyframes fi{from{opacity:0;transform:translate(-50%,-50%) translateY(12px)}to{opacity:1;transform:translate(-50%,-50%) translateY(0)}}
+
+/* ═══ TIER SELECTION SCREEN ═══ */
+.tier-scr{position:absolute;inset:0;background:#fff;z-index:100;display:none;flex-direction:column}
+.tier-scr.open{display:flex}
+.tier-body{flex:1;display:flex;padding:32px 40px;gap:40px;overflow:hidden}
+.tier-l{flex:1}
+.tier-l h2{font-size:28px;font-weight:600;color:#333;margin-bottom:24px;line-height:34px}
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tc{padding:28px;border-radius:12px;border:1px solid #ededed;background:#fff;text-align:center;font-size:20px;font-weight:600;color:#555;cursor:pointer;transition:all .12s;line-height:24px}
+.tc:hover{border-color:#ccc;color:#333}
+.tc.sel{border-color:#F72E13;background:#feeae7;color:#F72E13;font-weight:600}
+.tier-r{width:580px;display:flex;flex-direction:column}
+.tier-r h2{font-size:28px;font-weight:600;color:#333;margin-bottom:24px;line-height:34px}
+.pp{background:#f9f9f9;border-radius:12px;border:1px solid #ededed;padding:28px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
+.pp-list{display:flex;flex-direction:column;gap:24px}
+.pp-row{display:flex;align-items:center}
+.pp-sep{height:1px;background:#ddd;width:100%}
+.pp-cnt{width:45px;height:34px;border-radius:6px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#999;font-weight:600;margin-right:16px;flex-shrink:0}
+.pp-gt{flex:1;font-size:20px;font-weight:500;color:#555;line-height:24px}
+.pp-amt{font-size:24px;font-weight:600;color:#333;text-align:right;line-height:28px}
+.pp-amt.na{color:#aaa;font-weight:600}
+.pp-amt.ch{color:#F72E13;font-weight:600}
+.pp-row.na-row .pp-cnt{background:#ffefec;color:#F72E13}
+.pp-row.na-row .pp-gt{color:#F72E13}
+.pp-tot{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#f0f0f0;border-radius:10px}
+.pp-tot .l{font-size:24px;color:#555;font-weight:600;line-height:28px}
+.pp-tot .v{font-size:24px;font-weight:600;color:#333;line-height:28px}
+.tier-foot{display:flex;gap:16px;padding:0 40px 28px;background:#fff}
+.btn-c{height:68px;padding:0 40px;border-radius:12px;background:#333;color:#fff;font-size:24px;font-weight:500;display:flex;align-items:center;justify-content:center;min-width:230px;line-height:28px}
+.btn-c:hover{background:#444}
+.btn-x{flex:1;height:68px;border-radius:12px;font-size:24px;font-weight:500;text-align:center;transition:all .12s;display:flex;align-items:center;justify-content:center;line-height:28px}
+.btn-x.off{background:#e8e8e8;color:#ccc;cursor:default}
+.btn-x.on{background:#F72E13;color:#fff;cursor:pointer}
+.btn-x.on:hover{background:#e0280f}
+
+/* ═══ GUEST POPUP ═══ */
+.gm-bg{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
+.gm-bg.open{display:flex}
+.gm{background:#fff;border-radius:16px;width:800px;overflow:hidden}
+.gm-top{display:flex;justify-content:space-between;align-items:center;padding:28px 32px 0}
+.gm-top .t{font-size:26px;font-weight:700;color:#333;line-height:32px}
+.gm-top .g{font-size:22px;font-weight:500;color:#555;line-height:26px}
+.gm-body{display:flex}
+.gm-fields{width:403px;padding:20px 28px 20px;display:flex;flex-direction:column;gap:20px}
+.gf-lb{font-size:20px;font-weight:500;color:#555;margin-bottom:0;padding-left:4px;line-height:24px}
+.gf-in{display:flex;align-items:center;padding:0 16px;border-radius:8px;background:#f5f5f5;cursor:pointer;transition:all .1s;height:52px}
+.gf-in.act{background:#f5f5f5;box-shadow:inset 0 0 0 1px #292929}
+.gf-in .v{flex:1;font-size:20px;font-weight:500;color:#555;line-height:24px}
+.gf-in .v.ph{color:#bbb}
+.gf-in .cx{width:28px;height:28px;border-radius:50%;background:#d7d7d7;display:flex;align-items:center;justify-content:center;font-size:12px;color:#888;cursor:pointer;flex-shrink:0}
+.gf-in .cx:hover{background:#ccc}
+.gf-dots{display:flex;gap:8px;justify-content:center;padding:0}
+.gf-d{width:6px;height:6px;border-radius:50%;background:#d7d7d7}
+.gf-d.a{background:#F72E13}
+.np{background:#525252;width:397px;padding:20px 36px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;align-content:start;border-top-right-radius:12px;flex-shrink:0}
+.nk{height:80px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:500;color:#fff;background:transparent;transition:all .08s;cursor:pointer;line-height:48px}
+.nk:hover{background:rgba(255,255,255,.1)}
+.nk:active{background:rgba(255,255,255,.15);transform:scale(.95)}
+.nk.cl{background:#292929;font-size:20px;font-weight:500;height:40px;border-radius:8px;padding:0 16px}
+.nk.nx{background:#fff;color:#555;font-size:20px;font-weight:500;height:40px;border-radius:8px;padding:0 16px;border:1px solid #d7d7d7}
+.gm-foot{display:flex;gap:12px;padding:20px 28px;border-top:1px solid #ebebeb;border-radius:0 0 16px 16px}
+.gm-foot .btn-c{height:52px;padding:0 28px;border-radius:8px;background:#292929;color:#fff;font-size:22px;font-weight:500;display:flex;align-items:center;justify-content:center;line-height:26px}
+.gm-foot .btn-u{flex:1;height:52px;border-radius:8px;font-size:22px;font-weight:500;text-align:center;transition:all .12s;display:flex;align-items:center;justify-content:center;line-height:26px}
+.gm-foot .btn-u.off{background:#d7d7d7;color:#bbb;cursor:default}
+.gm-foot .btn-u.on{background:#F72E13;color:#fff;cursor:pointer}
+.gm-foot .btn-u.on:hover{background:#e0280f}
+
+/* ═══ DIALOGS ═══ */
+.dlg-bg{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center}
+.dlg-bg.open{display:flex}
+.dlg{background:#fff;border-radius:16px;width:560px;padding:28px}
+.dlg .sub{font-size:18px;color:#999;margin-bottom:12px;font-weight:400;line-height:22px}
+.dlg h3{font-size:24px;font-weight:700;margin-bottom:8px;color:#333;line-height:28px}
+.dlg p{font-size:18px;color:#777;line-height:1.5;margin-bottom:20px;font-weight:400}
+.lt{width:100%;border-collapse:collapse;margin-bottom:24px}
+.lt thead{background:#f5f5f5}
+.lt th{padding:12px 16px;text-align:left;font-size:16px;color:#999;font-weight:500}
+.lt th:nth-child(2),.lt th:nth-child(3){text-align:center}
+.lt td{padding:14px 16px;font-size:18px;color:#555;border-top:1px solid #f0f0f0;font-weight:500}
+.lt td:nth-child(2),.lt td:nth-child(3){text-align:center}
+.db{display:flex;justify-content:flex-end;gap:12px}
+.db .bo{padding:0 28px;height:44px;border-radius:8px;border:1px solid #d7d7d7;background:#fff;font-size:20px;color:#555;font-weight:500;display:flex;align-items:center;justify-content:center}
+.db .bo:hover{background:#f5f5f5}
+.db .bd{padding:0 28px;height:44px;border-radius:8px;background:#292929;color:#fff;font-size:20px;font-weight:500;display:flex;align-items:center;justify-content:center}
+.db .bd:hover{background:#333}
+.pwd-in{width:100%;height:52px;padding:0 16px;border-radius:8px;background:#f5f5f5;font-size:20px;margin-bottom:24px;font-weight:500}
+.pwd-in::placeholder{color:#bbb}
+
+/* ═══ PROTO LABEL ═══ */
+.plbl{position:absolute;top:8px;right:100px;background:rgba(247,46,19,.9);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;z-index:999;letter-spacing:.5px}
+</style>
+</head>
+<body>
+
+<div class="plbl">INTERACTIVE PROTOTYPE</div>
+<div class="snk" id="snk"></div>
+
+<!-- ═══════════════════════════════════════════
+     TABLE DETAIL — Image background + overlays
+     ═══════════════════════════════════════════ -->
+<div class="base" id="tableView">
+  <img id="bgImg" src="images/01_table_detail.png">
+  <!-- Main content overlay: covers both left orders + right info panel -->
+  <div class="mc">
+    <div class="mc-left" id="orderArea"></div>
+    <div class="mc-right" id="rp"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TIER SELECTION
+     ═══════════════════════════════════════════ -->
+<div class="tier-scr" id="tierScr">
+  <div class="tier-body">
+    <div class="tier-l">
+      <h2>Choose the price tier</h2>
+      <div class="tier-grid" id="tierGrid"></div>
+    </div>
+    <div class="tier-r">
+      <h2>Total price</h2>
+      <div class="pp" id="pp"></div>
+    </div>
+  </div>
+  <div class="tier-foot">
+    <button class="btn-c" onclick="closeTier()">Cancel</button>
+    <button class="btn-x off" id="btnCh" onclick="doTierChange()">Change</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     GUEST POPUP
+     ═══════════════════════════════════════════ -->
+<div class="gm-bg" id="gmBg">
+  <div class="gm">
+    <div class="gm-top">
+      <div class="t">T23</div>
+      <div class="g" id="gmTotal"></div>
+    </div>
+    <div class="gm-body">
+      <div class="gm-fields" id="gmFields"></div>
+      <div class="np" id="np"></div>
+    </div>
+    <div class="gm-foot">
+      <button class="btn-c" onclick="closeGuest()">Cancel</button>
+      <button class="btn-u off" id="btnUp" onclick="doGuestUpdate()">Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAX LIMIT DIALOG
+     ═══════════════════════════════════════════ -->
+<div class="dlg-bg" id="limBg">
+  <div class="dlg">
+    <div class="sub">Change price tier</div>
+    <h3>Continue with max limit items?</h3>
+    <p>Items already ordered at max limit will remain after downgrade.</p>
+    <table class="lt">
+      <thead><tr><th>Item</th><th>Ordered</th><th>Limit</th></tr></thead>
+      <tbody>
+        <tr><td>Wagyu Beef Steak Special Edition</td><td>1</td><td>3</td></tr>
+        <tr><td>Truffle Pasta</td><td>3</td><td>3</td></tr>
+        <tr><td>Premium Sushi Set</td><td>2</td><td>5</td></tr>
+        <tr><td>Lobster Thermidor</td><td>1</td><td>2</td></tr>
+      </tbody>
+    </table>
+    <div class="db">
+      <button class="bo" onclick="closeLim()">Cancel</button>
+      <button class="bd" onclick="showPwd('tier')">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PASSWORD DIALOG
+     ═══════════════════════════════════════════ -->
+<div class="dlg-bg" id="pwdBg">
+  <div class="dlg">
+    <div class="sub" id="pwdSub">Change price tier</div>
+    <h3>Manager password</h3>
+    <p id="pwdDesc">A downgrade requires manager password to proceed.</p>
+    <input type="password" class="pwd-in" id="pwdIn" placeholder="Password" onkeydown="if(event.key==='Enter')doPwd()">
+    <div class="db">
+      <button class="bo" onclick="closePwd()">Cancel</button>
+      <button class="bd" onclick="doPwd()">Change</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════════════ */
+const TIERS={
+  Gold:{Senior:80,Adult:95,Kids:30,Other:60},
+  Silver:{Senior:null,Adult:75,Kids:10,Other:40},
+  Bronze:{Senior:null,Adult:50,Kids:5,Other:null},
+  Test:{Senior:null,Adult:null,Kids:null,Other:null}
+};
+const RANK={Gold:3,Silver:2,Bronze:1,Test:0};
+const TN=['Gold','Silver','Bronze','Test'];
+const GT=['Senior','Adult','Kids','Other'];
+
+/* ── State ── */
+const BASE_GUESTS={Senior:0,Adult:3,Kids:1,Other:0}; // initial order (never changes)
+const BASE_TIER='Silver';
+let S={tier:'Silver',guests:{Senior:0,Adult:3,Kids:1,Other:0},discount:null,extraOrders:[]};
+let TS={sel:null};  // tier screen
+let GS={ed:{},af:'Senior'};  // guest popup
+let pwdCtx=null;
+let snkT=null;
+let orderSeq=2; // next order number (#Z0001 is base)
+
+/* ═══════════════════════════════════════════════
+   TABLE DETAIL
+   ═══════════════════════════════════════════════ */
+function renderTable(){
+  const prices=TIERS[S.tier];
+  // Base order subtotal uses frozen initial state
+  const basePr=TIERS[BASE_TIER];
+  let sub=0;
+  GT.forEach(g=>{if(BASE_GUESTS[g]>0&&basePr[g]!==null)sub+=BASE_GUESTS[g]*basePr[g]});
+  // Add extra order amounts to subtotal
+  let extraSum=0;
+  S.extraOrders.forEach(o=>o.items.forEach(it=>extraSum+=it.qty*it.unit));
+  sub+=extraSum;
+  const disc=S.discount?S.discount.amount:0;
+  const total=sub-disc;
+  const gTotal=Object.values(S.guests).reduce((a,b)=>a+b,0);
+
+  // ── LEFT: Order cards ──
+  let oh='';
+  // Base order #Z0001 — always shows initial guests & tier (frozen)
+  const basePrices=TIERS[BASE_TIER];
+  oh+=`<div class="oc"><div class="hd"><div><span class="oid">#Z0001</span><span class="tm">06:49:24 PM</span></div><button class="cfm">Confirm</button></div><div class="oc-body">`;
+  GT.forEach(g=>{
+    const cnt=BASE_GUESTS[g], p=basePrices[g];
+    if(cnt>0&&p!==null){
+      oh+=`<div class="oi"><div class="il"><div class="q">${cnt}</div><div class="n">${g}</div></div><div class="u">$${p.toFixed(2)}</div><div class="t">$${(cnt*p).toFixed(2)}</div></div>`;
+    }
+  });
+  oh+='</div></div>';
+  // Extra orders (tier change diff, guest add diff)
+  S.extraOrders.forEach(o=>{
+    oh+=`<div class="oc"><div class="hd"><div><span class="oid">#Z${String(o.num).padStart(4,'0')}</span><span class="tm">06:49:24 PM</span></div><button class="cfm">Confirm</button></div><div class="oc-body">`;
+    o.items.forEach(it=>{
+      oh+=`<div class="oi"><div class="il"><div class="q">${it.qty}</div><div class="n">${it.name}</div></div><div class="u">$${it.unit.toFixed(2)}</div><div class="t">$${(it.qty*it.unit).toFixed(2)}</div></div>`;
+    });
+    oh+='</div></div>';
+  });
+  document.getElementById('orderArea').innerHTML=oh;
+
+  // ── RIGHT: Info panel ──
+  let h='';
+  h+=`<div class="rp-card" onclick="openTier()">
+    <div class="lft"><svg class="ico" viewBox="0 0 24 24" fill="#333"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg> <span class="txt">${S.tier}</span></div>
+    <span class="edt">Edit</span>
+  </div>`;
+  h+=`<div class="rp-card" onclick="openGuest()">
+    <div class="lft"><svg class="ico" viewBox="0 0 24 24" fill="#555"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> <span class="txt">${gTotal} guests</span></div>
+    <span class="edt">Edit</span>
+  </div>`;
+  h+='<div class="rp-sum">';
+  h+=`<div class="rp-row"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>`;
+  if(S.discount){
+    h+=`<div class="rp-row disc"><span>Discount</span><span>-$${disc.toFixed(2)}</span></div>`;
+  }
+  h+=`<div class="rp-row"><span>Tax</span><span>$0.00</span></div>`;
+  h+=`<div class="rp-row total"><span>Total</span><span class="v">$${total.toFixed(2)}</span></div>`;
+  h+='</div>';
+  h+='<button class="rp-reset">Reset table</button>';
+  document.getElementById('rp').innerHTML=h;
+}
+
+/* ═══════════════════════════════════════════════
+   TIER SELECTION
+   ═══════════════════════════════════════════════ */
+function openTier(){
+  TS.sel=null;
+  renderTier();
+  document.getElementById('tierScr').classList.add('open');
+}
+function closeTier(){document.getElementById('tierScr').classList.remove('open')}
+
+function renderTier(){
+  // Cards
+  document.getElementById('tierGrid').innerHTML=TN.map(t=>{
+    let c='tc';
+    if(TS.sel===t)c+=' sel';
+    else if(!TS.sel&&t===S.tier)c+=' sel';
+    return`<div class="${c}" onclick="selTier('${t}')">${t}</div>`;
+  }).join('');
+
+  // Price panel
+  const at=TS.sel||S.tier;
+  const pr=TIERS[at];
+  let tot=0;
+  let rows=GT.map(g=>{
+    const cnt=S.guests[g];
+    const p=pr[g];
+    const has=p!==null;
+    if(has)tot+=cnt*p;
+    let ac='pp-amt',txt='',rc='pp-row';
+    if(!has&&cnt>0){ac+=' ch';txt='Not available';rc+=' na-row';}
+    else if(!has&&cnt===0){ac+=' na';txt='–';}
+    else if(cnt===0){ac+=' na';txt='–';}
+    else{txt='$'+(cnt*p).toFixed(2);}
+    return`<div class="${rc}"><div class="pp-cnt">${cnt}</div><div class="pp-gt">${g}</div><div class="${ac}">${txt}</div></div>`;
+  });
+  let rh='<div class="pp-list">'+rows.join('<div class="pp-sep"></div>')+'</div>';
+  rh+=`<div class="pp-tot"><span class="l">Total</span><span class="v">$${tot.toFixed(2)}</span></div>`;
+  document.getElementById('pp').innerHTML=rh;
+
+  // Button — always enabled if a different tier is selected
+  const can=TS.sel&&TS.sel!==S.tier;
+  const btn=document.getElementById('btnCh');
+  btn.className='btn-x '+(can?'on':'off');
+}
+
+function selTier(t){
+  TS.sel=t;
+  renderTier();
+}
+
+function doTierChange(){
+  const btn=document.getElementById('btnCh');
+  if(btn.classList.contains('off'))return;
+  const nw=TS.sel;
+  // Block if unavailable guest types exist — show snackbar and stop
+  const miss=GT.filter(g=>S.guests[g]>0&&TIERS[nw][g]===null);
+  if(miss.length===1){snk(miss[0]+' is not included in this tier.','er');return;}
+  if(miss.length>1){snk('Some guest types are not included in this tier.','er');return;}
+  // Calculate if total price actually decreases
+  const oldPr=TIERS[S.tier],newPr=TIERS[nw];
+  let oldTotal=0,newTotal=0;
+  GT.forEach(g=>{const c=S.guests[g];if(c>0){oldTotal+=c*(oldPr[g]||0);newTotal+=c*(newPr[g]||0)}});
+  const isPriceDown=newTotal<oldTotal;
+  if(isPriceDown){document.getElementById('limBg').classList.add('open');}
+  else{applyTier(nw,false);}
+}
+
+function closeLim(){document.getElementById('limBg').classList.remove('open')}
+
+function applyTier(nw,isPriceDown){
+  const oldPr=TIERS[S.tier],newPr=TIERS[nw];
+  if(isPriceDown){
+    let d=0;
+    GT.forEach(g=>{const c=S.guests[g],op=oldPr[g]||0,np=newPr[g]||0;if(c>0&&op>np)d+=c*(op-np)});
+    if(d>0){const prev=S.discount?S.discount.amount:0;S.discount={amount:prev+d,reason:'100% Discount (Tier downgrade)'};}
+  }else{
+    // Upgrade: add diff order
+    let diffTotal=0;
+    GT.forEach(g=>{const c=S.guests[g],op=oldPr[g]||0,np=newPr[g]||0;if(c>0&&np>op)diffTotal+=c*(np-op)});
+    if(diffTotal>0){
+      S.extraOrders.push({num:orderSeq++,items:[{name:'Price Tier Up',qty:1,unit:diffTotal}]});
+    }
+  }
+  S.tier=nw;
+  closeTier();
+  renderTable();
+  snk('Price tier changed to '+nw+'.','ok');
+}
+
+/* ═══════════════════════════════════════════════
+   GUEST POPUP
+   ═══════════════════════════════════════════════ */
+function openGuest(){
+  GS.ed={...S.guests};
+  const pr=TIERS[S.tier];
+  GS.af=GT.find(g=>pr[g]!==null)||'Adult';
+  renderGuest();
+  document.getElementById('gmBg').classList.add('open');
+}
+function closeGuest(){document.getElementById('gmBg').classList.remove('open')}
+
+function renderGuest(){
+  const pr=TIERS[S.tier];
+  const vis=GT.filter(g=>pr[g]!==null);
+  const tot=Object.values(GS.ed).reduce((a,b)=>a+b,0);
+  document.getElementById('gmTotal').textContent=tot+' guests';
+
+  // Fields
+  document.getElementById('gmFields').innerHTML=vis.map(g=>{
+    const a=GS.af===g;
+    const v=GS.ed[g];
+    return`<div><div class="gf-lb">${g}</div><div class="gf-in${a?' act':''}" onclick="setAF('${g}')"><span class="v${v===0?' ph':''}">${v===0?'Count':v}</span>${v>0?`<div class="cx" onclick="event.stopPropagation();clrF('${g}')">&#10005;</div>`:''}</div></div>`;
+  }).join('')+`<div class="gf-dots">${vis.map(g=>`<div class="gf-d${GS.af===g?' a':''}"></div>`).join('')}</div>`;
+
+  // Numpad
+  const np=document.getElementById('np');
+  np.innerHTML='';
+  for(let i=1;i<=9;i++)np.innerHTML+=`<button class="nk" onclick="pNum(${i})">${i}</button>`;
+  np.innerHTML+=`<button class="nk cl" onclick="pClr()">Clear</button>`;
+  np.innerHTML+=`<button class="nk" onclick="pNum(0)">0</button>`;
+  np.innerHTML+=`<button class="nk nx" onclick="pNxt()">Next</button>`;
+
+  // Update btn
+  const changed=GT.some(g=>GS.ed[g]!==S.guests[g]);
+  document.getElementById('btnUp').className='btn-u '+(changed?'on':'off');
+}
+
+function setAF(g){GS.af=g;renderGuest()}
+function clrF(g){GS.ed[g]=0;renderGuest()}
+function pNum(n){const g=GS.af,c=GS.ed[g],v=c*10+n;GS.ed[g]=v>99?n:v;renderGuest()}
+function pClr(){GS.ed[GS.af]=0;renderGuest()}
+function pNxt(){const pr=TIERS[S.tier],vis=GT.filter(g=>pr[g]!==null),i=vis.indexOf(GS.af);GS.af=vis[(i+1)%vis.length];renderGuest()}
+
+function doGuestUpdate(){
+  if(document.getElementById('btnUp').classList.contains('off'))return;
+  const totN=Object.values(GS.ed).reduce((a,b)=>a+b,0);
+  if(totN===0){snk('At least 1 guest is required.','er');return}
+  const totO=Object.values(S.guests).reduce((a,b)=>a+b,0);
+  if(totN<totO){closeGuest();showPwd('guest');}
+  else{applyGuest(false)}
+}
+
+function applyGuest(down){
+  const pr=TIERS[S.tier];
+  if(down){
+    let d=0;
+    GT.forEach(g=>{const diff=S.guests[g]-GS.ed[g];if(diff>0&&pr[g])d+=diff*pr[g]});
+    if(d>0){const prev=S.discount?S.discount.amount:0;S.discount={amount:prev+d,reason:'100% Discount (Guest decrease)'};}
+  }else{
+    // Increase: add diff order per guest type that increased
+    const items=[];
+    GT.forEach(g=>{
+      const diff=GS.ed[g]-S.guests[g];
+      if(diff>0&&pr[g]){items.push({name:g,qty:diff,unit:pr[g]})}
+    });
+    if(items.length)S.extraOrders.push({num:orderSeq++,items});
+  }
+  S.guests={...GS.ed};
+  closeGuest();renderTable();
+  const t=Object.values(S.guests).reduce((a,b)=>a+b,0);
+  snk('Guest count updated to '+t+'.','ok');
+}
+
+/* ═══════════════════════════════════════════════
+   PASSWORD
+   ═══════════════════════════════════════════════ */
+function showPwd(ctx){
+  pwdCtx=ctx;
+  document.getElementById('limBg').classList.remove('open');
+  document.getElementById('gmBg').classList.remove('open');
+  const m=document.getElementById('pwdBg'),inp=document.getElementById('pwdIn');
+  inp.value='';
+  document.getElementById('pwdSub').textContent=ctx==='tier'?'Change price tier':'Change guest count';
+  document.getElementById('pwdDesc').textContent=ctx==='tier'?'A downgrade requires manager password to proceed.':'Decreasing guest count requires manager password to proceed.';
+  m.classList.add('open');
+  setTimeout(()=>inp.focus(),100);
+}
+function closePwd(){
+  document.getElementById('pwdBg').classList.remove('open');
+  // tier: 티어 선택 화면이 이미 열려있으므로 그대로 복귀
+  // guest: 게스트 팝업은 showPwd에서 닫았으므로 다시 열기
+  if(pwdCtx==='guest')openGuest();
+}
+function doPwd(){
+  if(!document.getElementById('pwdIn').value){snk('Please enter password.','er');return}
+  document.getElementById('pwdBg').classList.remove('open');
+  if(pwdCtx==='tier')applyTier(TS.sel,true);
+  else applyGuest(true);
+}
+
+/* ═══════════════════════════════════════════════
+   SNACKBAR
+   ═══════════════════════════════════════════════ */
+function snk(msg,type){
+  const el=document.getElementById('snk');
+  el.innerHTML=`<span class="ico ${type}">${type==='ok'?'✓':'!'}</span>${msg}`;
+  el.className='snk show fade-in';
+  clearTimeout(snkT);
+  snkT=setTimeout(()=>el.className='snk',3000);
+}
+
+/* ═══════════════════════════════════════════════
+   KEYBOARD
+   ═══════════════════════════════════════════════ */
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('gmBg').classList.contains('open')){
+    if(e.key>='0'&&e.key<='9'){pNum(+e.key);return}
+    if(e.key==='Tab'){e.preventDefault();pNxt();return}
+    if(e.key==='Backspace'||e.key==='Delete'){e.preventDefault();pClr();return}
+    if(e.key==='Enter'){doGuestUpdate();return}
+    if(e.key==='Escape'){closeGuest();return}
+  }
+  if(document.getElementById('tierScr').classList.contains('open')){
+    if(e.key==='Escape'){closeTier();return}
+    if(e.key==='Enter'){doTierChange();return}
+  }
+  if(document.getElementById('pwdBg').classList.contains('open')){
+    if(e.key==='Escape'){closePwd();return}
+  }
+  if(document.getElementById('limBg').classList.contains('open')){
+    if(e.key==='Escape'){closeLim();return}
+    if(e.key==='Enter'){showPwd('tier');return}
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════ */
+renderTable();
+</script>
+</body>
+</html>

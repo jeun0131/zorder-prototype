@@ -64,15 +64,16 @@
     --panel-scale: 0.62;
     margin-top: 38px;
     display: flex;
-    gap: 12px;
-    padding: 16px 20px;
+    gap: 0;
+    padding: 12px 12px;
     align-items: flex-start;
+    justify-content: center;
     height: calc(100vh - 38px);
     overflow: hidden;
   }
   .section-label {
-    font-size: 12px; font-weight: 700; color: #888;
-    letter-spacing: 0.5px; margin-bottom: 10px;
+    font-size: 11px; font-weight: 700; color: #888;
+    letter-spacing: 0.5px; margin-bottom: 6px;
     display: flex; align-items: center; gap: 8px;
   }
   .section-label .badge {
@@ -594,8 +595,9 @@
   /* Arrow */
   .flow-connector {
     display: flex; align-items: center; align-self: center; flex-shrink: 0;
+    margin: 0 4px;
   }
-  .flow-connector svg { width: 32px; height: 32px; }
+  .flow-connector svg { width: 28px; height: 28px; }
 
   @keyframes pulse-border {
     0%, 100% { box-shadow: 0 0 0 0 rgba(247,46,19,0.4); }
@@ -800,7 +802,7 @@
                 <div class="t-label">Table Change Password</div>
                 <div class="t-desc">Require password when changing tables</div>
               </div>
-              <span class="toggle-status off" id="toggleStatus">OFF</span>
+              <span class="toggle-status off" id="toggleStatus"></span>
               <div class="switch off" id="pwSwitch" onclick="togglePw()"><div class="thumb"></div></div>
             </div>
           </div>
@@ -1016,9 +1018,9 @@
 <script>
   // Auto-scale to fit viewport
   function autoScale() {
-    const totalOrigW = 960 + 1280 + 80; // admin + user + gaps/arrow
-    const availW = window.innerWidth - 80;
-    const availH = window.innerHeight - 80;
+    const totalOrigW = 960 + 1280 + 60; // admin + user + arrow
+    const availW = window.innerWidth - 24;
+    const availH = window.innerHeight - 70;
     const scaleW = availW / totalOrigW;
     const scaleH = availH / 830;
     const s = Math.min(scaleW, scaleH, 1);
@@ -1127,7 +1129,6 @@
   }
 
   function backToMain() {
-    selectedTbl = null;
     switchScreen('scrMain');
   }
 
@@ -1138,15 +1139,13 @@
 
   // === Continue button (no password here, just change) ===
   function onContinue() {
+    if (!selectedTbl) return;
     completeChange();
   }
 
   function completeChange() {
-    if (selectedTbl) {
-      currentTable = 'T' + selectedTbl;
-      document.getElementById('badgeText').textContent = 'T' + selectedTbl;
-    }
-    selectedTbl = null;
+    currentTable = 'T' + selectedTbl;
+    document.getElementById('badgeText').textContent = 'T' + selectedTbl;
     switchScreen('scrMain');
   }
 
@@ -1262,10 +1261,10 @@
     const st = document.getElementById('toggleStatus');
     if (pwEnabled) {
       sw.className = 'switch green';
-      st.textContent = 'ON'; st.className = 'toggle-status on';
+      st.textContent = ''; st.className = 'toggle-status on';
     } else {
       sw.className = 'switch off';
-      st.textContent = 'OFF'; st.className = 'toggle-status off';
+      st.textContent = ''; st.className = 'toggle-status off';
     }
   }
 
@@ -1273,7 +1272,7 @@
     pwEnabled = false; obEnabled = false; password = 'z1234'; selectedTbl = null;
     currentTable = 'T10'; modalMode = null;
     document.getElementById('pwSwitch').className = 'switch off';
-    document.getElementById('toggleStatus').textContent = 'OFF';
+    document.getElementById('toggleStatus').textContent = '';
     document.getElementById('toggleStatus').className = 'toggle-status off';
     document.getElementById('obSwitch').className = 'ob-switch off';
     document.getElementById('pwOverlay').classList.remove('visible');

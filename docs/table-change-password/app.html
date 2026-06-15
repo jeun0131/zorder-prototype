@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table Change Password — Interactive Spec</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root {
+    --primary: #F72E13;
+    --fill-secondary: #FEEAE7;
+    --fill-assistive-1: #F0F0F0;
+    --fill-assistive-2: #777;
+    --fill-button-strong: #F72E13;
+    --fill-button-black: #333;
+    --fill-button-light-black: #444;
+    --background-grey: #F9F9F9;
+    --background-white: #FFF;
+    --line-primary: #F72E13;
+    --line-normal: #DDD;
+    --line-assistive-1: #CCC;
+    --line-boundary: #EDEDED;
+    --line-border-default: #EBEBEB;
+    --text-strong: #333;
+    --text-normal: #555;
+    --text-assistive-1: #777;
+    --text-disable-1: #AAA;
+    --text-disabled: #BBB;
+    --text-primary: #F72E13;
+    --text-white: #FFF;
+    --color-neutral-10: #F5F5F5;
+    --color-red-5: #FFEFEC;
+    --color-red-50: #F72E13;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #E8E8E8;
+    color: var(--text-strong);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* === SPEC BAR === */
+  .spec-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: #1A1A1A; color: #fff; padding: 7px 24px;
+    display: flex; align-items: center; gap: 14px; font-size: 11px;
+    border-bottom: 2px solid var(--primary);
+  }
+  .spec-bar .title { font-weight: 700; font-size: 13px; color: var(--primary); }
+  .spec-bar .sep { color: #555; }
+  .spec-bar .info { color: #aaa; }
+  .reset-btn {
+    margin-left: auto;
+    background: #333; border: 1px solid #555; border-radius: 4px;
+    padding: 3px 12px; color: #fff; font-size: 11px;
+    cursor: pointer; font-family: inherit;
+  }
+  .reset-btn:hover { background: #555; }
+
+  /* === LAYOUT === */
+  .layout {
+    --panel-scale: 0.62;
+    margin-top: 38px;
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    align-items: flex-start;
+    height: calc(100vh - 38px);
+    overflow: hidden;
+  }
+  .section-label {
+    font-size: 12px; font-weight: 700; color: #888;
+    letter-spacing: 0.5px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label .badge {
+    background: var(--primary); color: #fff;
+    padding: 2px 8px; border-radius: 4px; font-size: 10px;
+  }
+
+  /* ===================== */
+  /* ADMIN PANEL           */
+  /* ===================== */
+  .admin-wrap {
+    flex-shrink: 0;
+    transform: scale(var(--panel-scale, 1));
+    transform-origin: top left;
+    width: calc(960px * var(--panel-scale, 1));
+    height: calc(620px * var(--panel-scale, 1));
+  }
+  .admin-panel {
+    width: 960px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  .admin-hdr {
+    background: #414757;
+    height: 70px;
+    display: flex; align-items: center; padding: 0 20px; gap: 14px;
+    box-shadow: rgba(0,0,0,0.08) 0px 1px 10px 0px;
+  }
+  .admin-hdr .logo {
+    width: 48px; height: 48px; border-radius: 50%; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; background: #fff;
+  }
+  .admin-hdr .logo-text {
+    font-family: monospace;
+    font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 1px;
+  }
+  .admin-hdr .publish-btn {
+    margin-left: auto;
+    background: #E91E63; color: #fff; border: none;
+    border-radius: 8px; padding: 8px 32px;
+    font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit;
+    height: 44px; display: flex; align-items: center; gap: 8px;
+  }
+  .admin-hdr .avatar {
+    width: 40px; height: 40px; border-radius: 50%; background: #bdbdbd;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .admin-hdr .avatar svg { width: 22px; height: 22px; fill: #fff; }
+  .admin-body { display: flex; min-height: 520px; }
+  .admin-sidebar {
+    width: 207px; background: #fff;
+    border-right: 1px solid #F2F4F7;
+    padding: 12px 0; flex-shrink: 0;
+  }
+  .sb-section {
+    background: #414757; color: #fff;
+    font-size: 14px; font-weight: 700;
+    padding: 8px 16px; margin: 4px 8px; border-radius: 8px;
+  }
+  .sb-item {
+    padding: 8px 20px; font-size: 14px; font-weight: 500; color: #111927;
+    cursor: pointer; transition: all 0.1s;
+  }
+  .sb-item:hover { background: #F5F5F5; }
+  .sb-item.active { color: #FF3377; font-weight: 500; }
+  .sb-item .sub { font-size: 11px; color: #999; display: block; margin-top: -2px; }
+  .admin-content {
+    flex: 1; padding: 0 24px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center;
+  }
+  .admin-content h2 {
+    font-family: 'Plus Jakarta Sans', Inter, -apple-system, sans-serif;
+    font-size: 32px; font-weight: 600; text-align: center;
+    margin-bottom: 32px; color: #111927;
+  }
+  .toggle-cards { width: 552px; }
+
+  .toggle-row {
+    background: #fff; border: 1px solid #F2F4F7;
+    border-radius: 20px; padding: 0 24px;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
+    height: 88px;
+  }
+  .toggle-row svg { flex-shrink: 0; }
+  .toggle-row .t-label { flex: 1; font-size: 16px; font-weight: 400; color: #111927; }
+  .switch {
+    width: 58px; height: 38px; border-radius: 19px;
+    cursor: pointer; position: relative; transition: background 0.25s; flex-shrink: 0;
+  }
+  .switch.pink { background: rgba(255,51,119,0.5); }
+  .switch.green { background: rgba(16,185,129,0.5); }
+  .switch.off { background: #D0D0D0; }
+  .switch .thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    box-shadow: rgba(0,0,0,0.08) 0px 1px 2px 0px;
+    position: absolute; top: 9px; transition: left 0.25s;
+  }
+  .switch.pink .thumb { background: #FF3377; }
+  .switch.green .thumb { background: #10B981; }
+  .switch.off .thumb { background: #fff; left: 9px; }
+  .switch:not(.off) .thumb { left: 29px; }
+  .toggle-row .t-desc {
+    font-size: 13px; font-weight: 400; color: var(--text-assistive-1);
+    margin-top: 2px;
+  }
+  .toggle-status {
+    font-size: 12px; font-weight: 600; margin-left: 4px;
+    transition: color 0.2s;
+  }
+  .toggle-status.on { color: #10B981; }
+  .toggle-status.off { color: var(--text-disable-1); }
+
+  /* ===================== */
+  /* USER PANEL            */
+  /* ===================== */
+  .user-wrap {
+    flex-shrink: 0;
+    transform: scale(var(--panel-scale, 1));
+    transform-origin: top left;
+    width: calc(1280px * var(--panel-scale, 1));
+    height: calc(830px * var(--panel-scale, 1));
+  }
+  .user-panel {
+    width: 1280px; height: 800px;
+    background: var(--background-white);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    position: relative;
+  }
+  .scr { position: absolute; inset: 0; display: none; }
+  .scr.active { display: block; }
+
+  /* --- USER MAIN SCREEN (Figma-accurate) --- */
+  .u-main { display: flex; flex-direction: row; height: 100%; position: relative; }
+
+  /* Sidebar */
+  .u-sidebar {
+    width: 300px; background: var(--background-grey);
+    border-right: 1px solid var(--line-boundary);
+    padding: 16px 0 0 0; flex-shrink: 0;
+    display: flex; flex-direction: column; height: 100%;
+    position: relative;
+  }
+  .u-sidebar-top {
+    height: 50px; display: flex; align-items: center; padding-left: 28px;
+  }
+  .u-logo-img { height: 24px; width: 84px; }
+  .u-sidebar-content {
+    display: flex; flex-direction: column; gap: 24px;
+    padding: 24px 0 0 0; flex: 1; overflow: hidden;
+  }
+  .u-store-block { padding: 0 28px; display: flex; flex-direction: column; gap: 8px; }
+  .u-store-name {
+    font-size: 24px; font-weight: 600; line-height: 28px;
+    color: var(--text-strong); height: 58px;
+    display: flex; align-items: center;
+  }
+  .u-store-notice {
+    background: var(--fill-assistive-1); border: 1px solid var(--line-assistive-1);
+    border-radius: 8px; height: 33px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 500; color: var(--text-normal);
+  }
+  .u-categories {
+    display: flex; flex-direction: column; gap: 4px;
+    align-items: center;
+  }
+  .u-cat {
+    width: 260px; height: 68px; padding: 20px 16px;
+    display: flex; align-items: center;
+    font-size: 20px; font-weight: 500; line-height: 24px;
+    color: var(--text-normal); cursor: pointer;
+    border-radius: 8px; transition: all 0.1s;
+    border: 1px solid transparent;
+  }
+  .u-cat:hover { background: rgba(0,0,0,0.02); }
+  .u-cat.active {
+    background: var(--fill-secondary); color: var(--text-primary);
+    font-weight: 600; border-color: var(--line-primary);
+    border-radius: 12px;
+  }
+  .u-sidebar-gradient {
+    position: absolute; bottom: 0; left: 0; width: 300px; height: 76px;
+    background: linear-gradient(to bottom, rgba(249,249,249,0), #f9f9f9);
+    pointer-events: none;
+  }
+
+  /* Content area */
+  .u-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+  /* Header */
+  .u-header {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 36px; padding: 13px 28px 0 0; height: 48px;
+  }
+  .u-verify {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--background-white); padding: 6px 10px; border-radius: 8px;
+  }
+  .u-verify-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--text-disable-1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: var(--text-disable-1);
+  }
+  .u-verify-text { font-size: 20px; font-weight: 500; color: var(--text-disable-1); }
+  .u-guests {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 20px; font-weight: 500; color: var(--text-strong);
+  }
+  .u-guests svg { width: 28px; height: 28px; fill: var(--text-strong); }
+  .u-table-badge {
+    font-size: 28px; font-weight: 700; line-height: 40px;
+    color: var(--text-primary); padding: 4px 10px;
+    cursor: pointer; transition: all 0.15s;
+    border: 2px solid transparent; border-radius: 12px;
+    position: relative;
+  }
+  .u-table-badge:hover { border-color: var(--primary); background: var(--fill-secondary); }
+  .u-table-badge.ob-active {
+    background: var(--primary); color: #fff;
+    border-radius: 24px; padding: 4px 16px;
+    border-color: transparent;
+  }
+  .u-table-badge.ob-active:hover { border-color: #D42510; background: #D42510; }
+  .u-table-badge .click-hint {
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    background: var(--primary); color: #fff; font-size: 9px; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px; white-space: nowrap;
+    opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  }
+  .u-table-badge:hover .click-hint { opacity: 1; }
+
+  /* Course tabs */
+  .u-tabs-area { padding: 13px 0 0 28px; display: flex; gap: 8px; align-items: flex-end; }
+  .u-tab-wrap { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; min-width: 180px; }
+  .u-tab-time { font-size: 16px; font-weight: 500; line-height: 18px; color: var(--text-normal); }
+  .u-tab {
+    min-width: 180px; padding: 12px 16px;
+    border-radius: 12px; text-align: center;
+    font-size: 20px; font-weight: 500; line-height: 24px;
+    cursor: pointer; border: 1px solid transparent;
+  }
+  .u-tab.active {
+    background: var(--color-red-5); border-color: var(--color-red-50);
+    color: var(--text-primary); font-weight: 600;
+  }
+  .u-tab.inactive {
+    background: var(--color-neutral-10); color: var(--text-normal);
+  }
+
+  /* Grid toggle */
+  .u-grid-toggle {
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 12px 28px 0;
+  }
+  .u-grid-btn {
+    display: flex; align-items: center; gap: 12px;
+    background: white; border: 1px solid var(--line-normal);
+    border-radius: 8px; padding: 8px 16px;
+    font-size: 16px; font-weight: 500; color: var(--text-assistive-1);
+    cursor: default;
+  }
+  .u-grid-dots {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 2px;
+    width: 17px;
+  }
+  .u-grid-dots span {
+    width: 3px; height: 3px; border-radius: 1px;
+    background: var(--text-assistive-1);
+  }
+
+  /* Menu items */
+  .u-menu-section {
+    padding: 20px 28px 0; flex: 1; overflow-y: auto;
+    position: relative;
+  }
+  .u-section-title {
+    font-size: 24px; font-weight: 600; line-height: 28px;
+    color: var(--text-strong); margin-bottom: 16px;
+  }
+  .u-items {
+    display: flex; gap: 12px; margin-bottom: 32px;
+  }
+  .u-item { width: 300px; cursor: pointer; }
+  .u-item-img {
+    width: 300px; height: 200px; border-radius: 12px;
+    overflow: hidden; margin-bottom: 12px;
+  }
+  .u-item-img img { width: 100%; height: 100%; object-fit: cover; }
+  .u-item-text { padding: 0 8px; }
+  .u-item-name {
+    font-size: 18px; font-weight: 500; line-height: 22px;
+    color: var(--text-normal); height: 44px; margin-bottom: 16px;
+  }
+  .u-item-price {
+    font-size: 24px; font-weight: 600; line-height: 28px;
+    color: var(--text-strong);
+  }
+
+  /* Bottom gradient */
+  .u-content-gradient {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    pointer-events: none; z-index: 5;
+  }
+  .u-content-gradient-top {
+    height: 33px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.8));
+  }
+  .u-content-gradient-bottom {
+    height: 40px; background: white;
+  }
+
+  /* Bottom bar */
+  .u-bottom-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 24px 40px; position: relative; z-index: 10;
+    background: white;
+  }
+  .u-bottom-btn {
+    height: 48px; padding: 0 18px;
+    background: var(--fill-button-light-black); color: var(--text-white);
+    border: none; border-radius: 10px;
+    font-size: 20px; font-weight: 500; line-height: 24px;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .u-bottom-btn svg { width: 28px; height: 28px; }
+  .u-cart-btn {
+    margin-left: auto;
+    height: 68px; padding: 12px 32px 12px 40px;
+    background: var(--fill-button-strong); color: var(--text-white);
+    border: none; border-radius: 12px;
+    font-size: 24px; font-weight: 600; line-height: 28px;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  /* --- TABLE SCREEN (Figma-accurate) --- */
+  .tbl-screen { background: var(--background-white); display: flex; flex-direction: column; height: 100%; }
+  .tbl-title {
+    font-size: 24px; font-weight: 600; line-height: 28px;
+    color: var(--text-strong); padding: 32px 40px 0;
+  }
+  .tbl-bg {
+    margin: 28px 40px 0;
+    background: var(--background-grey);
+    border: 1px solid var(--line-boundary);
+    border-radius: 12px;
+    flex: 1; position: relative;
+    overflow: hidden;
+  }
+  .tbl-grid-area {
+    padding: 28px;
+    overflow-y: auto; height: 100%;
+  }
+  .tbl-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .tbl-cell {
+    height: 108px;
+    background: var(--background-white);
+    border: 1px solid var(--line-assistive-1);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 500; line-height: 22px;
+    color: var(--text-normal);
+    cursor: pointer; transition: all 0.15s;
+    position: relative;
+  }
+  .tbl-cell:hover { border-color: #999; }
+  .tbl-cell.in-use {
+    background: var(--fill-assistive-1);
+    border-color: var(--line-assistive-1);
+  }
+  .tbl-cell .iu-badge {
+    position: absolute; top: 7px; right: 7px;
+    background: var(--fill-assistive-2);
+    color: var(--text-white);
+    font-size: 14px; font-weight: 500; line-height: 16px;
+    padding: 2px 7px; border-radius: 4px;
+    overflow: hidden;
+  }
+  .tbl-cell.selected {
+    background: var(--fill-secondary);
+    border-color: var(--line-primary);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .tbl-cell.selected .iu-badge {
+    background: var(--fill-button-strong);
+  }
+  .tbl-scrollbar {
+    position: absolute; right: 15px; top: 28px;
+    width: 2px; height: 148px;
+    background: var(--line-normal); border-radius: 4px;
+  }
+
+  /* Page buttons */
+  .tbl-footer {
+    padding: 0 40px 28px;
+    display: flex; gap: 16px; align-items: center;
+  }
+  .btn-back-tbl {
+    min-width: 230px; height: 68px;
+    background: var(--fill-button-black); color: var(--text-white);
+    border: none; border-radius: 12px;
+    font-size: 24px; font-weight: 500; line-height: 28px;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-continue {
+    flex: 1; min-width: 230px; height: 68px;
+    background: var(--fill-button-strong); color: var(--text-white);
+    border: none; border-radius: 12px;
+    font-size: 24px; font-weight: 500; line-height: 28px;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .btn-continue:disabled {
+    background: #E0E0E0; color: var(--text-disabled); cursor: default;
+  }
+
+  /* --- PASSWORD OVERLAY (Figma-accurate) --- */
+  .pw-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; align-items: center;
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .pw-overlay.visible { opacity: 1; pointer-events: auto; }
+  .pw-modal {
+    width: 520px;
+    margin-top: 108px;
+    display: flex; flex-direction: column;
+    transform: scale(0.94); transition: transform 0.25s;
+  }
+  .pw-overlay.visible .pw-modal { transform: scale(1); }
+  .pw-modal-body {
+    background: var(--background-white);
+    border-radius: 16px 16px 0 0;
+    padding: 40px 28px;
+    display: flex; flex-direction: column; align-items: center; gap: 40px;
+  }
+  .pw-modal-text {
+    display: flex; flex-direction: column; gap: 16px;
+    text-align: center; width: 100%;
+  }
+  .pw-modal-text h4 {
+    font-size: 26px; font-weight: 700; line-height: 32px;
+    color: var(--text-strong);
+  }
+  .pw-modal-text p {
+    font-size: 20px; font-weight: 400; line-height: 28px;
+    color: var(--text-assistive-1);
+  }
+  .pw-modal-input {
+    width: 100%; height: 52px;
+    background: var(--color-neutral-10);
+    border: none; border-radius: 8px;
+    padding: 0 16px;
+    font-size: 20px; font-weight: 500; line-height: 24px;
+    font-family: inherit; color: var(--text-strong);
+  }
+  .pw-modal-input:focus { outline: 2px solid var(--primary); background: #fff; }
+  .pw-modal-input.error { outline: 2px solid var(--primary); background: #FFF8F7; }
+  .pw-modal-input::placeholder { color: var(--text-disabled); font-weight: 500; }
+
+  .pw-modal-btns {
+    display: flex;
+    border-top: 1px solid #E7E7E7;
+    background: white;
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+  }
+  .pw-modal-btn {
+    width: 260px; height: 68px;
+    border: none; background: none;
+    font-size: 22px; line-height: 26px;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pw-modal-btn.cancel {
+    color: var(--text-normal); font-weight: 500;
+  }
+  .pw-modal-btn.access {
+    color: var(--text-strong); font-weight: 700;
+    border-left: 1px solid var(--line-border-default);
+  }
+  .pw-modal-btn:hover { background: #F5F5F5; }
+
+  /* Snackbar */
+  .snackbar {
+    margin-top: 48px;
+    background: rgba(0,0,0,0.9);
+    padding: 24px 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; gap: 12px;
+    opacity: 0; transform: translateY(10px);
+    transition: all 0.3s; pointer-events: none;
+  }
+  .snackbar.visible { opacity: 1; transform: translateY(0); }
+  .snackbar-icon {
+    width: 28px; height: 28px; flex-shrink: 0;
+  }
+  .snackbar-text {
+    font-size: 26px; font-weight: 500; line-height: 32px;
+    color: var(--text-white); white-space: nowrap;
+  }
+
+  /* Arrow */
+  .flow-connector {
+    display: flex; align-items: center; align-self: center; flex-shrink: 0;
+  }
+  .flow-connector svg { width: 32px; height: 32px; }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(247,46,19,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(247,46,19,0); }
+  }
+  .pulse-hint { animation: pulse-border 2s infinite; }
+
+  /* Long press ring */
+  .longpress-ring {
+    position: absolute; inset: -4px; border-radius: 14px;
+    border: 3px solid transparent; pointer-events: none;
+    transition: none;
+  }
+  .longpress-ring.filling {
+    border-color: var(--primary);
+    animation: lp-fill 0.6s linear forwards;
+  }
+  @keyframes lp-fill {
+    0% { clip-path: inset(0 100% 0 0); }
+    100% { clip-path: inset(0 0 0 0); }
+  }
+  .longpress-ring.done {
+    border-color: var(--primary);
+    clip-path: inset(0);
+    animation: lp-pop 0.2s ease;
+  }
+  @keyframes lp-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  /* Order book toast */
+  .ob-toast {
+    position: absolute; top: 60px; right: 28px;
+    background: var(--fill-button-black); color: var(--text-white);
+    padding: 10px 20px; border-radius: 10px;
+    font-size: 16px; font-weight: 500; z-index: 50;
+    opacity: 0; transform: translateY(-6px);
+    transition: all 0.25s; pointer-events: none;
+  }
+  .ob-toast.visible { opacity: 1; transform: translateY(0); }
+
+  /* Order Book toggle on table select screen */
+  .tbl-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 32px 40px 0;
+  }
+  .tbl-header .tbl-title { padding: 0; }
+  .ob-toggle-wrap {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ob-toggle-label {
+    font-size: 18px; font-weight: 500; color: var(--text-normal);
+  }
+  .ob-switch {
+    width: 52px; height: 30px; border-radius: 15px;
+    cursor: pointer; position: relative; transition: background 0.25s;
+    flex-shrink: 0;
+  }
+  .ob-switch.on { background: var(--primary); }
+  .ob-switch.off { background: #D0D0D0; }
+  .ob-switch .ob-thumb {
+    width: 22px; height: 22px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    position: absolute; top: 4px; transition: left 0.25s;
+  }
+  .ob-switch.off .ob-thumb { left: 4px; }
+  .ob-switch.on .ob-thumb { left: 26px; }
+
+  /* Order Book popup */
+  .ob-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .ob-overlay.visible { opacity: 1; pointer-events: auto; }
+  .ob-popup {
+    width: 1200px; height: 720px;
+    background: var(--background-white);
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    transform: scale(0.94); transition: transform 0.25s;
+    overflow: hidden;
+  }
+  .ob-overlay.visible .ob-popup { transform: scale(1); }
+  .ob-popup-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 28px 0;
+  }
+  .ob-popup-title {
+    font-size: 24px; font-weight: 700; color: var(--text-strong);
+  }
+  .ob-popup-close {
+    width: 28px; height: 28px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0;
+  }
+  .ob-popup-close svg { width: 28px; height: 28px; }
+  .ob-popup-grid-area {
+    flex: 1; margin: 28px; padding: 24px;
+    background: var(--background-grey);
+    border: 1px solid var(--line-boundary);
+    border-radius: 12px;
+    overflow-y: auto;
+  }
+  .ob-popup-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .ob-cell {
+    height: 108px;
+    background: var(--background-white);
+    border: 1px solid var(--line-assistive-1);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 500; color: var(--text-normal);
+    cursor: pointer; transition: all 0.15s;
+    position: relative;
+  }
+  .ob-cell:hover { border-color: #999; }
+  .ob-cell.in-use {
+    background: var(--fill-assistive-1);
+    border-color: var(--line-assistive-1);
+  }
+  .ob-cell .iu-badge {
+    position: absolute; top: 7px; right: 7px;
+    background: var(--fill-assistive-2); color: var(--text-white);
+    font-size: 14px; font-weight: 500; line-height: 16px;
+    padding: 2px 7px; border-radius: 4px;
+  }
+  .ob-cell.current {
+    background: var(--fill-secondary);
+    border-color: var(--line-primary);
+    color: var(--text-primary); font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="spec-bar">
+  <span class="title">TABLE CHANGE PASSWORD</span>
+  <span class="sep">|</span>
+  <span class="info">Admin Toggle ON → Long press T10 → Password → Table select · Order Book ON → T10 red badge, Click = Order Book popup · Test pw: z1234</span>
+  <button class="reset-btn" onclick="resetAll()">Reset</button>
+</div>
+<div class="layout">
+
+  <!-- ===== ADMIN ===== -->
+  <div class="admin-wrap">
+    <div class="section-label">BACKOFFICE — Settings > General <span class="badge">ADMIN</span></div>
+    <div class="admin-panel">
+      <div class="admin-hdr">
+        <div class="logo"><svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" fill="#F72E13"/><text x="18" y="24" text-anchor="middle" fill="#fff" font-size="18" font-weight="800" font-family="Pretendard">Z</text></svg></div>
+        <span class="logo-text">Zorder Toast POS</span>
+        <button class="publish-btn">Publish <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+        <div class="avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z"/></svg></div>
+      </div>
+      <div class="admin-body">
+        <div class="admin-sidebar">
+          <div class="sb-section">Branded Menu Settings</div>
+          <div class="sb-item">Branded Menu</div>
+          <div class="sb-section">Settings</div>
+          <div class="sb-item active">General</div>
+          <div class="sb-item">Store Notice</div>
+          <div class="sb-item">Call Server</div>
+          <div class="sb-item">Promotions</div>
+          <div class="sb-item">Item Layout<span class="sub">Requires v4.0+</span></div>
+          <div class="sb-item">Language</div>
+          <div class="sb-item">Table Name</div>
+          <div class="sb-item">Table QR</div>
+          <div class="sb-item">Age Verification</div>
+          <div class="sb-item">Printer</div>
+          <div class="sb-item">Z-Pos Devices</div>
+          <div class="sb-section">Payment</div>
+          <div class="sb-item">Tips</div>
+          <div class="sb-item">Taxes</div>
+          <div class="sb-item">Fees</div>
+          <div class="sb-item">Service Charges</div>
+          <div class="sb-item">Payment Options</div>
+          <div class="sb-section">Sync with POS</div>
+          <div class="sb-item">Toast</div>
+        </div>
+        <div class="admin-content">
+          <h2>Feature Toggle Settings</h2>
+          <div class="toggle-cards">
+            <div class="toggle-row">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#FF3377"><path d="M7.58 4.08 6.15 2.65C3.75 4.48 2.17 7.3 2.03 10.5h2c.15-2.65 1.51-4.97 3.55-6.42zm12.39 6.42h2c-.15-3.2-1.73-6.02-4.12-7.85l-1.42 1.43c2.02 1.45 3.39 3.77 3.54 6.42zM18 11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2v-5zm-6 11c.14 0 .27-.01.4-.04.65-.14 1.18-.58 1.44-1.18.1-.24.15-.5.15-.78h-4c.01 1.1.9 2 2.01 2z"/></svg>
+              <div class="t-label">Call Server</div>
+              <div class="switch pink"><div class="thumb"></div></div>
+            </div>
+            <div class="toggle-row">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#10B981"><path d="M22 7h-9v2h9V7zm0 8h-9v2h9v-2zM5.54 11 2 7.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 11zm0 8L2 15.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 19z"/></svg>
+              <div class="t-label">Check</div>
+              <div class="switch green"><div class="thumb"></div></div>
+            </div>
+            <div class="toggle-row" id="pwToggleRow">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#6366F1" stroke-width="1.8" fill="none"/><path d="M8 11V7a4 4 0 1 1 8 0v4" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#6366F1"/></svg>
+              <div style="flex:1;">
+                <div class="t-label">Table Change Password</div>
+                <div class="t-desc">Require password when changing tables</div>
+              </div>
+              <span class="toggle-status off" id="toggleStatus">OFF</span>
+              <div class="switch off" id="pwSwitch" onclick="togglePw()"><div class="thumb"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="flow-connector">
+    <svg viewBox="0 0 48 48" fill="none">
+      <path d="M10 24H38M38 24L28 14M38 24L28 34" stroke="#F72E13" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+    </svg>
+  </div>
+
+  <!-- ===== USER ===== -->
+  <div class="user-wrap">
+    <div class="section-label">USER APP — Table Change Flow <span class="badge">USER</span></div>
+    <div class="user-panel" id="userPanel">
+
+      <!-- SCREEN 1: Main Menu -->
+      <div class="scr active" id="scrMain">
+        <div class="u-main">
+          <div class="u-sidebar">
+            <div class="u-sidebar-top">
+              <!-- Z ORDER logo -->
+              <svg class="u-logo-img" viewBox="0 0 84 24" fill="none">
+                <path d="M0 0h10.8L3.6 16.8h10.8v6H0L7.2 6H0V0z" fill="#F72E13"/>
+                <path d="M28.8 14.4h8.4v2.4h-3v6h-2.4v-6h-3V14.4zM38.4 14.4h2.4v3h3v-3h2.4v8.4h-2.4v-3h-3v3h-2.4V14.4zM48 14.4h6.6v2.1h-4.2v1.2h3.6v2.1h-3.6v1.2h4.2v1.8H48V14.4zM62.4 14.4h4.2c1.8 0 3 1.2 3 2.7 0 1.2-.6 2.1-1.8 2.4l2.1 3.3h-2.7L65.4 20h-.6v2.8h-2.4V14.4zm4.2 3.6c.6 0 .9-.3.9-.9s-.3-.9-.9-.9h-1.8v1.8h1.8zM71.4 14.4H78c1.8 0 3 .9 3 2.4 0 1.2-.6 2.1-1.8 2.4.9.3 1.5 1.2 1.5 2.1 0 1.8-1.2 2.7-3 2.7h-6.3V14.4zm5.4 3.3c0-.3-.3-.6-.9-.6h-2.1v1.5h2.1c.6 0 .9-.3.9-.9zm.3 3.6c0-.6-.3-.9-1.2-.9h-2.1v1.5h2.1c.9 0 1.2-.3 1.2-.6zM56.4 14.4h4.2c1.8 0 3 1.2 3 2.7 0 1.2-.6 2.1-1.8 2.4l2.1 3.3h-2.7L59.4 20h-.6v2.8h-2.4V14.4zm4.2 3.6c.6 0 .9-.3.9-.9s-.3-.9-.9-.9h-1.8v1.8h1.8z" fill="var(--text-strong)"/>
+                <path d="M22.8 6c0-3.3 2.7-6 6-6s6 2.7 6 6v12c0 3.3-2.7 6-6 6s-6-2.7-6-6V6zm2.4 0v12c0 2 1.6 3.6 3.6 3.6s3.6-1.6 3.6-3.6V6c0-2-1.6-3.6-3.6-3.6S25.2 4 25.2 6z" fill="var(--text-strong)"/>
+              </svg>
+            </div>
+            <div class="u-sidebar-content">
+              <div class="u-store-block">
+                <div class="u-store-name">Pita Pit</div>
+                <div class="u-store-notice">Store notice</div>
+              </div>
+              <div class="u-categories">
+                <div class="u-cat active">Artisan Pitas</div>
+                <div class="u-cat">Specialty Pitas</div>
+                <div class="u-cat">Classic Pitas</div>
+                <div class="u-cat">Build Your Own - Meat</div>
+                <div class="u-cat">Build Your Own - Plant Based</div>
+                <div class="u-cat">Brown Rice & Quinoa Bowls</div>
+                <div class="u-cat">Side & Drinks</div>
+              </div>
+            </div>
+            <div class="u-sidebar-gradient"></div>
+          </div>
+          <div class="u-content">
+            <div class="u-header">
+              <div class="u-verify">
+                <div class="u-verify-icon">✕</div>
+                <span class="u-verify-text">Verify ID</span>
+              </div>
+              <div class="u-guests">
+                <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="10" r="5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4 24c0-4 4.5-7 10-7s10 3 10 7" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                5
+              </div>
+              <div class="u-table-badge pulse-hint" id="tableBadge"
+                onmousedown="startLongPress(event)" onmouseup="endLongPress(event)" onmouseleave="endLongPress(event)"
+                ontouchstart="startLongPress(event)" ontouchend="endLongPress(event)">
+                <span class="click-hint" id="clickHint">Long press to change table</span>
+                <span id="badgeText">T10</span>
+                <div class="longpress-ring" id="longpressRing"></div>
+              </div>
+            </div>
+            <div class="u-tabs-area">
+              <div class="u-tab-wrap">
+                <span class="u-tab-time">11:00 AM - 01:00 PM</span>
+                <div class="u-tab active">Lunch</div>
+              </div>
+              <div class="u-tab-wrap">
+                <div class="u-tab inactive">Dinner</div>
+              </div>
+              <div class="u-tab-wrap">
+                <div class="u-tab inactive">Happy hour</div>
+              </div>
+            </div>
+            <div class="u-grid-toggle">
+              <div class="u-grid-btn">
+                <div class="u-grid-dots"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                4 Column grid
+              </div>
+            </div>
+            <div class="u-menu-section">
+              <div class="u-section-title">Artisan Pitas</div>
+              <div class="u-items">
+                <div class="u-item">
+                  <div class="u-item-img"><img src="https://www.figma.com/api/mcp/asset/05d2f0a2-4954-498d-bbb0-c31910a6c8c9" alt="Boom Boom Black Bean"></div>
+                  <div class="u-item-text"><div class="u-item-name">Boom Boom Black Bean</div><div class="u-item-price">$14.95</div></div>
+                </div>
+                <div class="u-item">
+                  <div class="u-item-img"><img src="https://www.figma.com/api/mcp/asset/1454b327-cc29-45f6-bf6c-f575c955e614" alt="Bacon Cheeseburger"></div>
+                  <div class="u-item-text"><div class="u-item-name">Bacon Cheeseburger</div><div class="u-item-price">$14.95</div></div>
+                </div>
+                <div class="u-item">
+                  <div class="u-item-img"><img src="https://www.figma.com/api/mcp/asset/7a933b69-3c6c-4dfd-8dfb-e6314abea08b" alt="Sriracha Chicken"></div>
+                  <div class="u-item-text"><div class="u-item-name">Sriracha Chicken</div><div class="u-item-price">$14.95</div></div>
+                </div>
+              </div>
+              <div class="u-section-title">Specialty Pitas</div>
+              <div class="u-items">
+                <div class="u-item">
+                  <div class="u-item-img"><img src="https://www.figma.com/api/mcp/asset/966e83e5-6525-4d63-aa86-2060055f08dc" alt="Boom Boom Black Bean"></div>
+                  <div class="u-item-text"><div class="u-item-name">Boom Boom Black Bean</div><div class="u-item-price">$14.95</div></div>
+                </div>
+                <div class="u-item">
+                  <div class="u-item-img"><img src="https://www.figma.com/api/mcp/asset/67e9bdf8-a852-45c9-8ec7-786557674436" alt="Bacon Cheeseburger"></div>
+                  <div class="u-item-text"><div class="u-item-name">Bacon Cheeseburger</div><div class="u-item-price">$14.95</div></div>
+                </div>
+                <div class="u-item">
+                  <div class="u-item-img"><img src="https://www.figma.com/api/mcp/asset/7a933b69-3c6c-4dfd-8dfb-e6314abea08b" alt="Sriracha Chicken"></div>
+                  <div class="u-item-text"><div class="u-item-name">Sriracha Chicken</div><div class="u-item-price">$14.95</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="u-content-gradient">
+              <div class="u-content-gradient-top"></div>
+              <div class="u-content-gradient-bottom"></div>
+            </div>
+            <div class="u-bottom-bar">
+              <button class="u-bottom-btn">
+                <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="white" stroke-width="2" fill="none"/><path d="M8 14h12M14 8v12" stroke="white" stroke-width="2"/></svg>
+                Language
+              </button>
+              <button class="u-bottom-btn">
+                <svg viewBox="0 0 28 28" fill="none"><rect x="5" y="4" width="18" height="10" rx="2" stroke="white" stroke-width="2" fill="none"/><rect x="5" y="16" width="18" height="8" rx="2" stroke="white" stroke-width="2" fill="none"/><line x1="9" y1="10" x2="19" y2="10" stroke="white" stroke-width="2"/><line x1="9" y1="15" x2="19" y2="15" stroke="white" stroke-width="2"/></svg>
+                Check
+              </button>
+              <button class="u-bottom-btn">
+                <svg viewBox="0 0 28 28" fill="none"><path d="M14 4C8.5 4 4 8 4 13c0 3.5 2 6.5 5 8l-1 4 4-2.5c.6.1 1.3.2 2 .2 5.5 0 10-4 10-9S19.5 4 14 4z" stroke="white" stroke-width="2" fill="none"/></svg>
+                Call server
+              </button>
+              <button class="u-cart-btn">
+                View cart
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="15" cy="33" r="3" fill="white"/><circle cx="27" cy="33" r="3" fill="white"/><path d="M4 4h4l4 20h18l3-14H12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-toast" id="obToast">Order Book opened</div>
+
+      <!-- ORDER BOOK POPUP -->
+      <div class="ob-overlay" id="obOverlay">
+        <div class="ob-popup">
+          <div class="ob-popup-header">
+            <span class="ob-popup-title">Order book</span>
+            <button class="ob-popup-close" onclick="closeObPopup()">
+              <svg viewBox="0 0 28 28" fill="none"><path d="M7 7l14 14M21 7L7 21" stroke="var(--text-strong)" stroke-width="2.5" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="ob-popup-grid-area">
+            <div class="ob-popup-grid" id="obGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: Table Select -->
+      <div class="scr" id="scrTable">
+        <div class="tbl-screen">
+          <div class="tbl-header">
+            <div class="tbl-title">Assign the table number</div>
+            <div class="ob-toggle-wrap">
+              <span class="ob-toggle-label">Order book</span>
+              <div class="ob-switch off" id="obSwitch" onclick="toggleOb()"><div class="ob-thumb"></div></div>
+            </div>
+          </div>
+          <div class="tbl-bg">
+            <div class="tbl-grid-area">
+              <div class="tbl-grid" id="tblGrid"></div>
+            </div>
+            <div class="tbl-scrollbar"></div>
+          </div>
+          <div class="tbl-footer">
+            <button class="btn-back-tbl" onclick="backToMain()">Back</button>
+            <button class="btn-continue" id="btnContinue" onclick="onContinue()">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASSWORD OVERLAY -->
+      <div class="pw-overlay" id="pwOverlay">
+        <div class="pw-modal">
+          <div class="pw-modal-body">
+            <div class="pw-modal-text">
+              <h4>Password required.</h4>
+              <p>Enter your password to void payment.</p>
+            </div>
+            <input type="password" class="pw-modal-input" id="modalInput" placeholder="Password" oninput="clearErr()">
+          </div>
+          <div class="pw-modal-btns">
+            <button class="pw-modal-btn cancel" onclick="closeModal()">Cancel</button>
+            <button class="pw-modal-btn access" onclick="submitPw()">Access</button>
+          </div>
+        </div>
+        <div class="snackbar" id="snackbar">
+          <svg class="snackbar-icon" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="12" stroke="#F72E13" stroke-width="2" fill="none"/>
+            <path d="M10 10l8 8M18 10l-8 8" stroke="#F72E13" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="snackbar-text">Incorrect password. Please try again.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Auto-scale to fit viewport
+  function autoScale() {
+    const totalOrigW = 960 + 1280 + 80; // admin + user + gaps/arrow
+    const availW = window.innerWidth - 80;
+    const availH = window.innerHeight - 80;
+    const scaleW = availW / totalOrigW;
+    const scaleH = availH / 830;
+    const s = Math.min(scaleW, scaleH, 1);
+    document.querySelector('.layout').style.setProperty('--panel-scale', s.toFixed(3));
+  }
+  window.addEventListener('resize', autoScale);
+  window.addEventListener('DOMContentLoaded', autoScale);
+  autoScale();
+
+  let pwEnabled = false;
+  let obEnabled = false;
+  let password = 'z1234';
+  let selectedTbl = null;
+  let currentTable = 'T10';
+  let lpTimer = null;
+  let lpTriggered = false;
+
+  const IN_USE = [1, 12, 17, 18, 20, 21, 28];
+  const LP_DURATION = 600;
+
+  // === Long press on T10 badge ===
+  function startLongPress(e) {
+    e.preventDefault();
+    lpTriggered = false;
+    const ring = document.getElementById('longpressRing');
+    ring.className = 'longpress-ring filling';
+    lpTimer = setTimeout(() => {
+      lpTriggered = true;
+      ring.className = 'longpress-ring done';
+      setTimeout(() => { ring.className = 'longpress-ring'; }, 300);
+      onBadgeLongPress();
+    }, LP_DURATION);
+  }
+
+  function endLongPress(e) {
+    e.preventDefault();
+    if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+    const ring = document.getElementById('longpressRing');
+    if (!lpTriggered) {
+      ring.className = 'longpress-ring';
+      onBadgeClick();
+    }
+  }
+
+  function onBadgeClick() {
+    if (obEnabled) {
+      if (pwEnabled) {
+        openModal('orderbook');
+      } else {
+        openObPopup();
+      }
+      return;
+    }
+    const toast = document.getElementById('obToast');
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 1800);
+  }
+
+  function onBadgeLongPress() {
+    if (pwEnabled) {
+      openModal('entry');
+    } else {
+      goToTableSelect();
+    }
+  }
+
+  // === Table grid ===
+  function initGrid() {
+    const grid = document.getElementById('tblGrid');
+    grid.innerHTML = '';
+    const curNum = parseInt(currentTable.replace('T',''));
+    for (let i = 1; i <= 30; i++) {
+      const c = document.createElement('div');
+      c.className = 'tbl-cell';
+      c.dataset.n = i;
+      c.textContent = 'T-' + String(i).padStart(2, '0');
+      const isInUse = IN_USE.includes(i);
+      const isCurrent = (i === curNum);
+      if (isCurrent || isInUse) {
+        c.classList.add('in-use');
+        const b = document.createElement('span');
+        b.className = 'iu-badge';
+        b.textContent = 'In use';
+        c.appendChild(b);
+      }
+      if (isCurrent) {
+        c.classList.add('selected');
+      }
+      c.addEventListener('click', () => pickTable(i, c));
+      grid.appendChild(c);
+    }
+  }
+
+  function pickTable(n, el) {
+    const curNum = parseInt(currentTable.replace('T',''));
+    if (n === curNum) return;
+    document.querySelectorAll('.tbl-cell.selected').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTbl = n;
+  }
+
+  function goToTableSelect() {
+    selectedTbl = null;
+    initGrid();
+    switchScreen('scrTable');
+  }
+
+  function backToMain() {
+    switchScreen('scrMain');
+  }
+
+  function switchScreen(id) {
+    document.querySelectorAll('.scr').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // === Continue button (no password here, just change) ===
+  function onContinue() {
+    if (!selectedTbl) return;
+    completeChange();
+  }
+
+  function completeChange() {
+    currentTable = 'T' + selectedTbl;
+    document.getElementById('badgeText').textContent = 'T' + selectedTbl;
+    switchScreen('scrMain');
+  }
+
+  // === Password modal (shown on page entry) ===
+  let modalMode = null; // 'entry'
+
+  function openModal(mode) {
+    modalMode = mode;
+    const o = document.getElementById('pwOverlay');
+    const inp = document.getElementById('modalInput');
+    o.classList.add('visible');
+    inp.value = ''; inp.classList.remove('error');
+    document.getElementById('snackbar').classList.remove('visible');
+    setTimeout(() => inp.focus(), 300);
+  }
+
+  function closeModal() {
+    const ov = document.getElementById('pwOverlay');
+    ov.classList.remove('visible');
+    modalMode = null;
+  }
+
+  function clearErr() {
+    document.getElementById('modalInput').classList.remove('error');
+    document.getElementById('snackbar').classList.remove('visible');
+  }
+
+  function submitPw() {
+    const val = document.getElementById('modalInput').value;
+    if (val === password) {
+      document.getElementById('snackbar').classList.remove('visible');
+      document.getElementById('modalInput').classList.remove('error');
+      const ov = document.getElementById('pwOverlay');
+      ov.style.transition = 'none';
+      ov.classList.remove('visible');
+      setTimeout(() => { ov.style.transition = ''; }, 50);
+      if (modalMode === 'entry') {
+        goToTableSelect();
+      } else if (modalMode === 'orderbook') {
+        openObPopup();
+      }
+      modalMode = null;
+    } else {
+      document.getElementById('modalInput').classList.add('error');
+      document.getElementById('modalInput').value = '';
+      document.getElementById('modalInput').focus();
+      document.getElementById('snackbar').classList.add('visible');
+    }
+  }
+
+  // === Order Book toggle (user side) ===
+  function toggleOb() {
+    obEnabled = !obEnabled;
+    const sw = document.getElementById('obSwitch');
+    const hint = document.getElementById('clickHint');
+    const badge = document.getElementById('tableBadge');
+    if (obEnabled) {
+      sw.className = 'ob-switch on';
+      hint.textContent = 'Click to open order book';
+      badge.classList.add('ob-active');
+    } else {
+      sw.className = 'ob-switch off';
+      hint.textContent = 'Long press to change table';
+      badge.classList.remove('ob-active');
+    }
+  }
+
+  // === Order Book popup ===
+  function initObGrid() {
+    const grid = document.getElementById('obGrid');
+    grid.innerHTML = '';
+    const curNum = parseInt(currentTable.replace('T',''));
+    for (let i = 1; i <= 30; i++) {
+      const c = document.createElement('div');
+      c.className = 'ob-cell';
+      c.textContent = 'T-' + String(i).padStart(2, '0');
+      const isInUse = IN_USE.includes(i);
+      const isCurrent = (i === curNum);
+      if (isInUse) {
+        c.classList.add('in-use');
+        const b = document.createElement('span');
+        b.className = 'iu-badge';
+        b.textContent = 'In use';
+        c.appendChild(b);
+      }
+      if (isCurrent) {
+        c.classList.add('current');
+      }
+      c.addEventListener('click', () => {
+        if (i !== curNum) {
+          currentTable = 'T' + i;
+          document.getElementById('badgeText').textContent = 'T' + i;
+        }
+        closeObPopup();
+      });
+      grid.appendChild(c);
+    }
+  }
+
+  function openObPopup() {
+    initObGrid();
+    document.getElementById('obOverlay').classList.add('visible');
+  }
+
+  function closeObPopup() {
+    document.getElementById('obOverlay').classList.remove('visible');
+  }
+
+  // === Admin toggle ===
+  function togglePw() {
+    pwEnabled = !pwEnabled;
+    const sw = document.getElementById('pwSwitch');
+    const st = document.getElementById('toggleStatus');
+    if (pwEnabled) {
+      sw.className = 'switch green';
+      st.textContent = 'ON'; st.className = 'toggle-status on';
+    } else {
+      sw.className = 'switch off';
+      st.textContent = 'OFF'; st.className = 'toggle-status off';
+    }
+  }
+
+  function resetAll() {
+    pwEnabled = false; obEnabled = false; password = 'z1234'; selectedTbl = null;
+    currentTable = 'T10'; modalMode = null;
+    document.getElementById('pwSwitch').className = 'switch off';
+    document.getElementById('toggleStatus').textContent = 'OFF';
+    document.getElementById('toggleStatus').className = 'toggle-status off';
+    document.getElementById('obSwitch').className = 'ob-switch off';
+    document.getElementById('pwOverlay').classList.remove('visible');
+    document.getElementById('obOverlay').classList.remove('visible');
+    document.getElementById('badgeText').textContent = 'T10';
+    document.getElementById('tableBadge').classList.remove('ob-active');
+    document.getElementById('clickHint').textContent = 'Long press to change table';
+    document.getElementById('obToast').classList.remove('visible');
+    switchScreen('scrMain');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('pwOverlay').classList.contains('visible')) submitPw();
+  });
+
+  initGrid();
+</script>
+</body>
+</html>

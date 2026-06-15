@@ -1127,6 +1127,7 @@
   }
 
   function backToMain() {
+    selectedTbl = null;
     switchScreen('scrMain');
   }
 
@@ -1137,13 +1138,15 @@
 
   // === Continue button (no password here, just change) ===
   function onContinue() {
-    if (!selectedTbl) return;
     completeChange();
   }
 
   function completeChange() {
-    currentTable = 'T' + selectedTbl;
-    document.getElementById('badgeText').textContent = 'T' + selectedTbl;
+    if (selectedTbl) {
+      currentTable = 'T' + selectedTbl;
+      document.getElementById('badgeText').textContent = 'T' + selectedTbl;
+    }
+    selectedTbl = null;
     switchScreen('scrMain');
   }
 

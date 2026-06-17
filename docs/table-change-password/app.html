@@ -143,51 +143,147 @@
   .sb-item.active { color: #FF3377; font-weight: 500; }
   .sb-item .sub { font-size: 11px; color: #999; display: block; margin-top: -2px; }
   .admin-content {
-    flex: 1; padding: 0 24px;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center;
+    flex: 1; padding: 32px;
+    display: flex; gap: 32px;
+    align-items: flex-start;
   }
-  .admin-content h2 {
-    font-family: 'Plus Jakarta Sans', Inter, -apple-system, sans-serif;
-    font-size: 32px; font-weight: 600; text-align: center;
-    margin-bottom: 32px; color: #111927;
-  }
-  .toggle-cards { width: 552px; }
 
-  .toggle-row {
-    background: #fff; border: 1px solid #F2F4F7;
-    border-radius: 20px; padding: 0 24px;
-    display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
-    height: 88px;
+  /* Feature Toggle section (left) */
+  .feature-section { flex: 1; }
+  .feature-section h3 {
+    font-size: 16px; font-weight: 400; color: #111927;
+    margin-bottom: 16px;
   }
-  .toggle-row svg { flex-shrink: 0; }
-  .toggle-row .t-label { flex: 1; font-size: 16px; font-weight: 400; color: #111927; }
+  .toggle-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+
+  .toggle-card {
+    background: #F7F7F7; border-radius: 12px;
+    padding: 16px; min-height: 120px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    cursor: default; transition: background 0.15s;
+    overflow: hidden;
+  }
+  .toggle-card-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .toggle-card-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .toggle-card-label {
+    font-size: 13px; font-weight: 600; color: #111927;
+    line-height: 1.3;
+  }
+  .toggle-card-desc {
+    font-size: 11px; font-weight: 500; color: #999; margin-top: 2px;
+    line-height: 1.3;
+  }
   .switch {
-    width: 58px; height: 38px; border-radius: 19px;
+    width: 48px; height: 26px; border-radius: 13px;
     cursor: pointer; position: relative; transition: background 0.25s; flex-shrink: 0;
   }
   .switch.pink { background: rgba(255,51,119,0.5); }
   .switch.green { background: rgba(16,185,129,0.5); }
   .switch.off { background: #D0D0D0; }
   .switch .thumb {
-    width: 20px; height: 20px; border-radius: 50%;
+    width: 18px; height: 18px; border-radius: 50%;
     box-shadow: rgba(0,0,0,0.08) 0px 1px 2px 0px;
-    position: absolute; top: 9px; transition: left 0.25s;
+    position: absolute; top: 4px; transition: left 0.25s;
   }
   .switch.pink .thumb { background: #FF3377; }
   .switch.green .thumb { background: #10B981; }
-  .switch.off .thumb { background: #fff; left: 9px; }
-  .switch:not(.off) .thumb { left: 29px; }
-  .toggle-row .t-desc {
-    font-size: 13px; font-weight: 400; color: var(--text-assistive-1);
-    margin-top: 2px;
+  .switch.off .thumb { background: #fff; left: 4px; }
+  .switch:not(.off) .thumb { left: 26px; }
+
+  /* Manager PIN section (right) */
+  .pin-section { width: 260px; flex-shrink: 0; }
+  .pin-section h3 {
+    font-size: 16px; font-weight: 400; color: #111927;
+    margin-bottom: 16px;
   }
-  .toggle-status {
-    font-size: 12px; font-weight: 600; margin-left: 4px;
-    transition: color 0.2s;
+  .pin-card {
+    background: #fff; border: 1px solid #E5E7EB;
+    border-radius: 12px; padding: 20px;
   }
-  .toggle-status.on { color: #10B981; }
-  .toggle-status.off { color: var(--text-disable-1); }
+  .pin-field {
+    position: relative; margin-bottom: 16px;
+  }
+  .pin-field label {
+    position: absolute; top: 8px; left: 12px;
+    font-size: 12px; font-weight: 500; color: #6C737F;
+    pointer-events: none;
+  }
+  .pin-field input {
+    width: 100%; height: 56px; padding: 24px 44px 8px 12px;
+    border: 1px solid #E5E7EB; border-radius: 8px;
+    font-size: 16px; font-weight: 500; color: #111927;
+    font-family: inherit; background: #fff;
+    transition: border-color 0.2s;
+  }
+  .pin-field input:focus { outline: none; border-color: #6366F1; }
+  .pin-field input:disabled { background: #F9FAFB; color: #999; }
+  .pin-eye {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; padding: 4px;
+    color: #6C737F; display: flex; align-items: center;
+  }
+  .pin-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .pin-btn {
+    padding: 8px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: inherit; border: none; transition: all 0.15s;
+  }
+  .pin-btn.save {
+    background: rgba(17,25,39,0.12); color: rgba(17,25,39,0.38);
+    pointer-events: none;
+  }
+  .pin-btn.save.active {
+    background: #414757; color: #fff;
+    pointer-events: auto;
+  }
+  .pin-btn.edit {
+    background: #F7F7F7; color: #111927;
+  }
+  .pin-btn.edit:hover { background: #EFEFEF; }
+  /* PIN auth modal */
+  .pin-auth-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .pin-auth-overlay.visible { opacity: 1; pointer-events: auto; }
+  .pin-auth-modal {
+    background: #fff; border-radius: 16px; padding: 32px;
+    width: 380px; text-align: center;
+    transform: scale(0.95); transition: transform 0.2s;
+  }
+  .pin-auth-overlay.visible .pin-auth-modal { transform: scale(1); }
+  .pin-auth-modal h4 { font-size: 18px; font-weight: 700; color: #111927; margin-bottom: 8px; }
+  .pin-auth-modal p { font-size: 14px; color: #6C737F; margin-bottom: 20px; }
+  .pin-auth-modal input {
+    width: 100%; height: 48px; padding: 0 16px;
+    border: 1px solid #E5E7EB; border-radius: 8px;
+    font-size: 16px; font-family: inherit; color: #111927;
+    margin-bottom: 16px;
+  }
+  .pin-auth-modal input:focus { outline: none; border-color: #6366F1; }
+  .pin-auth-modal input.error { border-color: #EF4444; background: #FEF2F2; }
+  .pin-auth-btns { display: flex; gap: 8px; justify-content: flex-end; }
+  .pin-auth-btns button {
+    padding: 10px 24px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; cursor: pointer; font-family: inherit; border: none;
+  }
+  .pin-auth-btns .cancel-btn { background: #F3F4F6; color: #374151; }
+  .pin-auth-btns .confirm-btn { background: #414757; color: #fff; }
+  .pin-auth-btns .confirm-btn:hover { background: #333B4A; }
+  .pin-shake { animation: shake 0.3s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
 
   /* ===================== */
   /* USER PANEL            */
@@ -743,7 +839,7 @@
 <div class="spec-bar">
   <span class="title">TABLE CHANGE PASSWORD</span>
   <span class="sep">|</span>
-  <span class="info">Admin Toggle ON → Long press T10 → Password → Table select · Order Book ON → T10 red badge, Click = Order Book popup · Test pw: z1234</span>
+  <span class="info">Table pw: z1234 · Manager PIN pw: z9797 (app-level, not editable) · Order Book ON → Click = Table select (no password)</span>
   <button class="reset-btn" onclick="resetAll()">Reset</button>
 </div>
 <div class="layout">
@@ -784,29 +880,73 @@
           <div class="sb-item">Toast</div>
         </div>
         <div class="admin-content">
-          <h2>Feature Toggle Settings</h2>
-          <div class="toggle-cards">
-            <div class="toggle-row">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#FF3377"><path d="M7.58 4.08 6.15 2.65C3.75 4.48 2.17 7.3 2.03 10.5h2c.15-2.65 1.51-4.97 3.55-6.42zm12.39 6.42h2c-.15-3.2-1.73-6.02-4.12-7.85l-1.42 1.43c2.02 1.45 3.39 3.77 3.54 6.42zM18 11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2v-5zm-6 11c.14 0 .27-.01.4-.04.65-.14 1.18-.58 1.44-1.18.1-.24.15-.5.15-.78h-4c.01 1.1.9 2 2.01 2z"/></svg>
-              <div class="t-label">Call Server</div>
-              <div class="switch pink"><div class="thumb"></div></div>
-            </div>
-            <div class="toggle-row">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#10B981"><path d="M22 7h-9v2h9V7zm0 8h-9v2h9v-2zM5.54 11 2 7.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 11zm0 8L2 15.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 19z"/></svg>
-              <div class="t-label">Check</div>
-              <div class="switch green"><div class="thumb"></div></div>
-            </div>
-            <div class="toggle-row" id="pwToggleRow">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#6366F1" stroke-width="1.8" fill="none"/><path d="M8 11V7a4 4 0 1 1 8 0v4" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#6366F1"/></svg>
-              <div style="flex:1;">
-                <div class="t-label">Table Change Password</div>
-                <div class="t-desc">Require password when changing tables</div>
+          <!-- Feature Toggle Settings (left) -->
+          <div class="feature-section">
+            <h3>Feature Toggle Settings</h3>
+            <div class="toggle-grid">
+              <div class="toggle-card">
+                <div class="toggle-card-top">
+                  <div class="toggle-card-icon" style="background:rgba(255,51,119,0.12);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF3377"><path d="M7.58 4.08 6.15 2.65C3.75 4.48 2.17 7.3 2.03 10.5h2c.15-2.65 1.51-4.97 3.55-6.42zm12.39 6.42h2c-.15-3.2-1.73-6.02-4.12-7.85l-1.42 1.43c2.02 1.45 3.39 3.77 3.54 6.42zM18 11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2v-5zm-6 11c.14 0 .27-.01.4-.04.65-.14 1.18-.58 1.44-1.18.1-.24.15-.5.15-.78h-4c.01 1.1.9 2 2.01 2z"/></svg>
+                  </div>
+                  <div class="switch pink"><div class="thumb"></div></div>
+                </div>
+                <div class="toggle-card-label">Call Server</div>
               </div>
-              <span class="toggle-status off" id="toggleStatus"></span>
-              <div class="switch off" id="pwSwitch" onclick="togglePw()"><div class="thumb"></div></div>
+              <div class="toggle-card">
+                <div class="toggle-card-top">
+                  <div class="toggle-card-icon" style="background:rgba(16,185,129,0.12);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#10B981"><path d="M22 7h-9v2h9V7zm0 8h-9v2h9v-2zM5.54 11 2 7.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 11zm0 8L2 15.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 19z"/></svg>
+                  </div>
+                  <div class="switch green"><div class="thumb"></div></div>
+                </div>
+                <div class="toggle-card-label">Check</div>
+              </div>
+              <div class="toggle-card" id="pwToggleRow">
+                <div class="toggle-card-top">
+                  <div class="toggle-card-icon" style="background:rgba(99,102,241,0.12);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#6366F1" stroke-width="1.8" fill="none"/><path d="M8 11V7a4 4 0 1 1 8 0v4" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#6366F1"/></svg>
+                  </div>
+                  <div class="switch off" id="pwSwitch" onclick="togglePw()"><div class="thumb"></div></div>
+                </div>
+                <div>
+                  <div class="toggle-card-label">Table Change Password</div>
+                  <div class="toggle-card-desc">Require password when changing tables. Not applied when Order Book is ON.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Manager PIN (right) -->
+          <div class="pin-section">
+            <h3>Manager PIN</h3>
+            <div class="pin-card">
+              <div class="pin-field" id="pinField">
+                <label>Manager PIN</label>
+                <input type="password" id="pinInput" value="z9797" disabled>
+                <button class="pin-eye" id="pinEyeBtn" onclick="onPinEyeClick()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
+                </button>
+              </div>
+              <div class="pin-actions">
+                <button class="pin-btn edit" id="pinEditBtn" onclick="openPinAuth()">Edit</button>
+                <button class="pin-btn save" id="pinSaveBtn" onclick="savePin()">Save</button>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIN Auth Modal -->
+  <div class="pin-auth-overlay" id="pinAuthOverlay">
+    <div class="pin-auth-modal">
+      <h4>Password required</h4>
+      <p>Enter admin password to edit Manager PIN.</p>
+      <input type="password" id="pinAuthInput" placeholder="Password" onkeydown="if(event.key==='Enter')confirmPinAuth()">
+      <div class="pin-auth-btns">
+        <button class="cancel-btn" onclick="closePinAuth()">Cancel</button>
+        <button class="confirm-btn" onclick="confirmPinAuth()">Confirm</button>
       </div>
     </div>
   </div>
@@ -1067,11 +1207,8 @@
 
   function onBadgeClick() {
     if (obEnabled) {
-      if (pwEnabled) {
-        openModal('orderbook');
-      } else {
-        openObPopup();
-      }
+      // Order Book ON → click opens popup modal (no password, quick access)
+      openObPopup();
       return;
     }
     const toast = document.getElementById('obToast');
@@ -1139,7 +1276,11 @@
 
   // === Continue button (no password here, just change) ===
   function onContinue() {
-    if (!selectedTbl) return;
+    if (!selectedTbl) {
+      // No new table selected → just close and go back to main
+      switchScreen('scrMain');
+      return;
+    }
     completeChange();
   }
 
@@ -1258,22 +1399,99 @@
   function togglePw() {
     pwEnabled = !pwEnabled;
     const sw = document.getElementById('pwSwitch');
-    const st = document.getElementById('toggleStatus');
     if (pwEnabled) {
       sw.className = 'switch green';
-      st.textContent = ''; st.className = 'toggle-status on';
     } else {
       sw.className = 'switch off';
-      st.textContent = ''; st.className = 'toggle-status off';
     }
+  }
+
+  // === Manager PIN ===
+  let pinUnlocked = false;
+  const adminPassword = 'z9797'; // App-level password (hardcoded, not editable from backoffice)
+
+  function openPinAuth() {
+    const ov = document.getElementById('pinAuthOverlay');
+    const inp = document.getElementById('pinAuthInput');
+    ov.classList.add('visible');
+    inp.value = ''; inp.classList.remove('error');
+    setTimeout(() => inp.focus(), 200);
+  }
+
+  function closePinAuth() {
+    document.getElementById('pinAuthOverlay').classList.remove('visible');
+  }
+
+  function confirmPinAuth() {
+    const inp = document.getElementById('pinAuthInput');
+    if (inp.value === adminPassword) {
+      closePinAuth();
+      pinUnlocked = true;
+      document.getElementById('pinInput').disabled = false;
+      document.getElementById('pinInput').focus();
+      document.getElementById('pinInput').addEventListener('input', onPinChange);
+      document.getElementById('pinEditBtn').style.display = 'none';
+      document.getElementById('pinSaveBtn').classList.add('active');
+      setPinIcon('eye-closed'); // Switch lock → eye (closed state)
+    } else {
+      inp.classList.add('error');
+      inp.parentElement.classList.add('pin-shake');
+      setTimeout(() => inp.parentElement.classList.remove('pin-shake'), 300);
+    }
+  }
+
+  function onPinChange() {
+    document.getElementById('pinSaveBtn').classList.add('active');
+  }
+
+  const pinLockSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>';
+  const pinEyeOpenSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const pinEyeClosedSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/></svg>';
+  let pinEyeOpen = false;
+
+  function onPinEyeClick() {
+    if (!pinUnlocked) {
+      // Locked → trigger auth
+      openPinAuth();
+      return;
+    }
+    // Unlocked → toggle visibility
+    const inp = document.getElementById('pinInput');
+    const btn = document.getElementById('pinEyeBtn');
+    pinEyeOpen = !pinEyeOpen;
+    inp.type = pinEyeOpen ? 'text' : 'password';
+    btn.innerHTML = pinEyeOpen ? pinEyeOpenSvg : pinEyeClosedSvg;
+  }
+
+  function setPinIcon(mode) {
+    const btn = document.getElementById('pinEyeBtn');
+    if (mode === 'lock') {
+      btn.innerHTML = pinLockSvg;
+      pinEyeOpen = false;
+    } else if (mode === 'eye-closed') {
+      btn.innerHTML = pinEyeClosedSvg;
+      pinEyeOpen = false;
+    }
+  }
+
+  function savePin() {
+    if (!pinUnlocked) return;
+    const btn = document.getElementById('pinSaveBtn');
+    btn.textContent = 'Saved!';
+    btn.classList.remove('active');
+    setTimeout(() => { btn.textContent = 'Save'; }, 1500);
+    // Lock again — force hide password, switch to lock icon
+    pinUnlocked = false;
+    document.getElementById('pinInput').type = 'password';
+    document.getElementById('pinInput').disabled = true;
+    document.getElementById('pinEditBtn').style.display = '';
+    setPinIcon('lock');
   }
 
   function resetAll() {
     pwEnabled = false; obEnabled = false; password = 'z1234'; selectedTbl = null;
     currentTable = 'T10'; modalMode = null;
     document.getElementById('pwSwitch').className = 'switch off';
-    document.getElementById('toggleStatus').textContent = '';
-    document.getElementById('toggleStatus').className = 'toggle-status off';
     document.getElementById('obSwitch').className = 'ob-switch off';
     document.getElementById('pwOverlay').classList.remove('visible');
     document.getElementById('obOverlay').classList.remove('visible');
@@ -1281,6 +1499,16 @@
     document.getElementById('tableBadge').classList.remove('ob-active');
     document.getElementById('clickHint').textContent = 'Long press to change table';
     document.getElementById('obToast').classList.remove('visible');
+    // Reset PIN
+    pinUnlocked = false;
+    document.getElementById('pinInput').disabled = true;
+    document.getElementById('pinInput').type = 'password';
+    document.getElementById('pinInput').value = '9797';
+    document.getElementById('pinEditBtn').style.display = '';
+    document.getElementById('pinSaveBtn').classList.remove('active');
+    document.getElementById('pinSaveBtn').textContent = 'Save';
+    setPinIcon('lock');
+    document.getElementById('pinAuthOverlay').classList.remove('visible');
     switchScreen('scrMain');
   }
 

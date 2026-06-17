@@ -922,13 +922,14 @@
             <div class="pin-card">
               <div class="pin-field" id="pinField">
                 <label>Manager PIN</label>
-                <input type="password" id="pinInput" value="z9797" disabled>
+                <input type="password" id="pinInput" value="z9797" maxlength="10" disabled>
                 <button class="pin-eye" id="pinEyeBtn" onclick="onPinEyeClick()">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 1 1 8 0v4"/></svg>
                 </button>
               </div>
               <div class="pin-actions">
                 <button class="pin-btn edit" id="pinEditBtn" onclick="openPinAuth()">Edit</button>
+                <button class="pin-btn edit" id="pinCancelBtn" onclick="cancelPinEdit()" style="display:none;">Cancel</button>
                 <button class="pin-btn save" id="pinSaveBtn" onclick="savePin()">Save</button>
               </div>
             </div>
@@ -1217,6 +1218,11 @@
   }
 
   function onBadgeLongPress() {
+    if (obEnabled) {
+      // Order Book ON → skip password even on long press
+      openObPopup();
+      return;
+    }
     if (pwEnabled) {
       openModal('entry');
     } else {
@@ -1408,6 +1414,7 @@
 
   // === Manager PIN ===
   let pinUnlocked = false;
+  let pinSavedValue = 'z9797'; // Last saved PIN value (for discard on cancel)
   const adminPassword = 'z9797'; // App-level password (hardcoded, not editable from backoffice)
 
   function openPinAuth() {
@@ -1431,6 +1438,7 @@
       document.getElementById('pinInput').focus();
       document.getElementById('pinInput').addEventListener('input', onPinChange);
       document.getElementById('pinEditBtn').style.display = 'none';
+      document.getElementById('pinCancelBtn').style.display = '';
       document.getElementById('pinSaveBtn').classList.add('active');
       setPinIcon('eye-closed'); // Switch lock → eye (closed state)
     } else {
@@ -1476,15 +1484,36 @@
 
   function savePin() {
     if (!pinUnlocked) return;
+    const inp = document.getElementById('pinInput');
+    const val = inp.value;
+    // Validation: 1~10 chars
+    if (val.length < 1 || val.length > 10) {
+      inp.style.borderColor = '#EF4444';
+      inp.setAttribute('placeholder', '1–10 characters required');
+      setTimeout(() => { inp.style.borderColor = ''; }, 2000);
+      return;
+    }
+    pinSavedValue = val;
     const btn = document.getElementById('pinSaveBtn');
     btn.textContent = 'Saved!';
     btn.classList.remove('active');
     setTimeout(() => { btn.textContent = 'Save'; }, 1500);
-    // Lock again — force hide password, switch to lock icon
+    lockPin();
+  }
+
+  function cancelPinEdit() {
+    // Discard changes, restore saved value
+    document.getElementById('pinInput').value = pinSavedValue;
+    lockPin();
+  }
+
+  function lockPin() {
     pinUnlocked = false;
     document.getElementById('pinInput').type = 'password';
     document.getElementById('pinInput').disabled = true;
     document.getElementById('pinEditBtn').style.display = '';
+    document.getElementById('pinCancelBtn').style.display = 'none';
+    document.getElementById('pinSaveBtn').classList.remove('active');
     setPinIcon('lock');
   }
 
@@ -1500,14 +1529,10 @@
     document.getElementById('clickHint').textContent = 'Long press to change table';
     document.getElementById('obToast').classList.remove('visible');
     // Reset PIN
-    pinUnlocked = false;
-    document.getElementById('pinInput').disabled = true;
-    document.getElementById('pinInput').type = 'password';
-    document.getElementById('pinInput').value = '9797';
-    document.getElementById('pinEditBtn').style.display = '';
-    document.getElementById('pinSaveBtn').classList.remove('active');
+    pinSavedValue = 'z9797';
+    document.getElementById('pinInput').value = pinSavedValue;
+    lockPin();
     document.getElementById('pinSaveBtn').textContent = 'Save';
-    setPinIcon('lock');
     document.getElementById('pinAuthOverlay').classList.remove('visible');
     switchScreen('scrMain');
   }

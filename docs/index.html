@@ -187,25 +187,32 @@
       // 새 프로젝트 추가 시 이 배열에만 항목을 추가하면 됩니다.
       //
       // 필드 설명
-      //   id          : 폴더명 (필수). url 생략 시 ./{id}/app.html 을 사용
+      //   id          : 폴더명 (필수). url 생략 시 ./{id}/index.html 을 사용
       //   title       : 카드에 표시할 이름 (필수)
       //   description : 짧은 설명 (필수)
       //   date        : "YYYY-MM" 형식 (선택)
       //   url         : 직접 경로를 지정하고 싶을 때만 작성 (선택)
       // ================================================================
       const PROJECTS = [
+             {
+          id: "check-order-history",
+          title: "Order History ON/OFF",
+          description: "Order History 맟 Ask for the check ON/OFF 프로토타입",
+          date: "2026-06-25",
+        },    
+      {
+          id: "table-change-password",
+          title: "Table Change Password",
+          description: "테이블 변경 패스워드 추가 프로토타입",
+          date: "2026-06-15",
+        },  
         {
           id: "prototype-tier-guest",
           title: "Tier Guest",
           description: "게스트 티어 관련 기능 프로토타입",
           date: "2026-06-12",
         },
-                {
-          id: "table-change-password",
-          title: "Table Change Password",
-          description: "테이블 변경 패스워드 추가 프로토타입",
-          date: "2026-06-15",
-        },
+
       ];
       // ================================================================
 

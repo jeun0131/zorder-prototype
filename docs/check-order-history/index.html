@@ -136,6 +136,9 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:#1a1a1a;overfl
 .flow-dot{width:8px;height:8px;border-radius:50%;background:#555;transition:background .3s}
 .flow-dot.active{background:#F72E13}
 .flow-label{font-size:11px;color:#aaa;margin-left:8px}
+
+/* ── Prevent image drag ── */
+img{-webkit-user-drag:none;user-select:none}
 </style>
 </head>
 <body>
@@ -381,9 +384,20 @@ function markNew(app) {
 /* ══════════════════════════════════════════
    BACKOFFICE TOGGLES
    ══════════════════════════════════════════ */
+function resetApps() {
+  S.checkRequested = false;
+  S.diningRed = false;
+  S.checkRequestTable = null;
+  S.serviceRequests = S.serviceRequests.filter(sr => sr.type !== 'check');
+  document.getElementById('ohOverlay').classList.remove('open');
+  document.getElementById('promoOverlay').classList.remove('open');
+  if (S.app === 'zm') renderMgr();
+}
+
 function toggleOH() {
   S.orderHistoryOn = !S.orderHistoryOn;
   renderToggle('tglOH', S.orderHistoryOn);
+  resetApps();
   renderZuBottom();
   markNew('zu');
   snk('Success, update Store Options !!', 'success');
@@ -392,6 +406,7 @@ function toggleOH() {
 function toggleCR() {
   S.checkRequestsOn = !S.checkRequestsOn;
   renderToggle('tglCR', S.checkRequestsOn);
+  resetApps();
   markNew('zu');
   snk('Success, update Store Options !!', 'success');
 }

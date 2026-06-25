@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check → Order History &amp; Check Requests ON/OFF</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:#1a1a1a;overflow:hidden;width:100vw;height:100vh;display:flex;flex-direction:row;-webkit-font-smoothing:antialiased}
+
+/* ── Left Sidebar (App Switcher) ── */
+.app-nav{width:140px;height:100vh;background:#111;display:flex;flex-direction:column;align-items:stretch;padding:16px 0;gap:4px;flex-shrink:0;border-right:1px solid #333}
+.app-tab{padding:12px 16px;border-radius:10px;font-size:14px;font-weight:600;color:#999;cursor:pointer;transition:all .2s;letter-spacing:.2px;user-select:none;text-align:left;line-height:1.3;margin:0 8px;position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.app-tab:hover{color:#eee;background:#222}
+.app-tab.active{color:#fff;background:#F72E13}
+.app-tab.has-new{background:rgba(247,46,19,.18);box-shadow:inset 0 0 0 1.5px rgba(247,46,19,.5);animation:pulse-new 2s ease-in-out infinite}
+.app-tab.has-new .new-badge{display:inline-block}
+.new-badge{display:none;font-size:9px;font-weight:700;background:#F72E13;color:#fff;padding:2px 6px;border-radius:4px;letter-spacing:.5px}
+@keyframes pulse-new{0%,100%{box-shadow:inset 0 0 0 1.5px rgba(247,46,19,.5)}50%{box-shadow:inset 0 0 0 1.5px rgba(247,46,19,.8),0 0 12px rgba(247,46,19,.25)}}
+.nav-spacer{flex:1}
+.proto-label{font-size:9px;color:#555;letter-spacing:1px;font-weight:600;padding:0 16px 16px;line-height:1.4;text-align:left}
+
+/* ── Screen Container ── */
+.screen-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.screen-frame{width:1280px;height:800px;position:relative;border-radius:8px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);flex-shrink:0;transition:width .3s ease,height .3s ease}
+.screen-frame.expanded{width:100%;height:100%;border-radius:0;box-shadow:none}
+
+/* ── Planning Note (outside screen) ── */
+.plan-note{position:fixed;right:16px;top:50%;transform:translateY(-50%);width:280px;padding:16px 18px;background:rgba(45,80,22,.92);border:1.5px solid #66BB6A;border-radius:10px;display:none;z-index:50}
+.plan-note.visible{display:block}
+#planNoteZm{top:auto;bottom:56px;transform:none}
+.plan-note-title{font-size:11px;font-weight:700;color:#A5D6A7;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase}
+.plan-note-body{font-size:13px;font-weight:500;color:#E8F5E9;line-height:20px}
+.plan-note-body li{margin-bottom:8px;list-style:disc;margin-left:16px}
+.plan-note-body b{color:#81C784;font-weight:700}
+.app-screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .3s ease;background:#fff}
+.app-screen.active{opacity:1;pointer-events:auto}
+
+/* ── Backoffice ── */
+.bo{background:#fff;display:flex;flex-direction:column}
+.bo-header{height:56px;background:#3C4043;display:flex;align-items:center;padding:0 32px}
+.bo-header h1{font-size:16px;font-weight:600;color:#fff}
+.bo-body{flex:1;display:flex;padding:40px 48px;gap:48px}
+.bo-left{flex:1}
+.bo-right{width:320px}
+.bo-section-title{font-size:16px;font-weight:700;color:#222;margin-bottom:24px}
+.bo-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bo-card{background:#f5f5f5;border-radius:16px;padding:24px;cursor:default;transition:box-shadow .2s}
+.bo-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.bo-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.bo-card-icon{width:44px;height:44px;background:#e8e8e8;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.bo-card-icon svg{width:22px;height:22px;fill:#666}
+.toggle-wrap{width:52px;height:28px;border-radius:14px;cursor:pointer;position:relative;transition:background .25s}
+.toggle-wrap.off{background:#e0e0e0}
+.toggle-wrap.on{background:linear-gradient(135deg,#FF6B9D,#FF4081)}
+.toggle-knob{width:22px;height:22px;background:#fff;border-radius:50%;position:absolute;top:3px;transition:left .25s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.toggle-wrap.off .toggle-knob{left:3px}
+.toggle-wrap.on .toggle-knob{left:27px;box-shadow:0 2px 6px rgba(255,64,129,.4)}
+.bo-card-name{font-size:19px;font-weight:700;color:#202630;margin-bottom:4px}
+.bo-card-desc{font-size:16px;font-weight:500;color:#8e8e8e;line-height:22px}
+.bo-pin-section{background:#f5f5f5;border-radius:16px;padding:32px;text-align:center}
+.bo-pin-title{font-size:16px;font-weight:700;color:#222;margin-bottom:24px}
+.bo-pin-text{font-size:13px;color:#888;margin-bottom:20px}
+.bo-pin-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 32px;border-radius:24px;border:none;background:linear-gradient(135deg,#FF6B9D,#FF4081);font-size:14px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(255,64,129,.3);transition:opacity .2s}
+.bo-pin-btn:hover{opacity:.9}
+.bo-pin-btn svg{width:18px;height:18px;fill:#fff}
+
+/* ── Z-User (image-based) ── */
+.zu{background:#fff;position:relative}
+.zu-bg{position:absolute;inset:0;width:1280px;height:800px;object-fit:cover;z-index:1}
+.zu-btn-zone{position:absolute;z-index:2}
+.zu-btn{position:absolute;cursor:pointer;border:none;background:none;padding:0;display:block;z-index:2}
+.zu-btn-lang{left:324px;top:712px;width:162px;height:48px}
+.zu-btn-call{left:494px;top:712px;width:169px;height:48px}
+.zu-btn-oh{left:671px;top:712px;width:193px;height:48px}
+.zu-btn-cart{left:1026px;top:692px;width:230px;height:68px}
+.zu-oh-cover{position:absolute;left:671px;top:712px;width:193px;height:48px;z-index:3;background:linear-gradient(180deg,#fff 0%,#f5f5f5 100%);display:none}
+.zu-anno-cover{position:absolute;left:557px;top:635px;width:430px;height:45px;z-index:2;background:#fff}
+
+/* ── Order History Popup (image-based) ── */
+.oh-overlay{position:absolute;inset:0;display:none;z-index:100}
+.oh-overlay.open{display:block}
+.oh-popup-wrap{position:relative;width:1280px;height:800px}
+.oh-bg-img{position:absolute;inset:0;width:1280px;height:800px;object-fit:cover}
+.oh-close-hot{position:absolute;left:1184px;top:68px;width:28px;height:28px;cursor:pointer;z-index:2}
+.oh-action-hot{position:absolute;cursor:pointer;z-index:2}
+.oh-action-on{left:941px;top:664px;width:271px;height:68px}
+.oh-action-off{left:982px;top:664px;width:230px;height:68px}
+
+/* ── Promo Popup (image-based) ── */
+.promo-overlay{position:absolute;inset:0;display:none;z-index:200}
+.promo-overlay.open{display:block}
+.promo-wrap{position:relative;width:1280px;height:800px}
+.promo-bg-img{position:absolute;inset:0;width:1280px;height:800px;object-fit:cover}
+.promo-close-hot{position:absolute;left:1184px;top:68px;width:28px;height:28px;cursor:pointer;z-index:2}
+.promo-check-hot{position:absolute;left:443px;top:432px;width:394px;height:40px;cursor:pointer;z-index:2;display:flex;align-items:center}
+.promo-chk-vis{width:28px;height:28px;border:2px solid rgba(255,255,255,.6);border-radius:6px;display:flex;align-items:center;justify-content:center;margin-left:0;transition:all .2s}
+.promo-chk-vis.checked{background:#fff;border-color:#fff}
+.promo-chk-vis.checked::after{content:'✓';color:#F72E13;font-size:16px;font-weight:700}
+.promo-phone-input{position:absolute;left:440px;top:492px;width:400px;height:60px;z-index:2;border:none;border-radius:12px;font-family:'Pretendard',sans-serif;font-size:16px;text-align:center;background:rgba(255,255,255,.95);color:#222;outline:none}
+.promo-phone-input::placeholder{color:#aaa}
+.promo-submit-hot{position:absolute;left:525px;top:576px;width:230px;height:68px;cursor:pointer;z-index:2}
+
+/* ── Z-Manager (image-based) ── */
+.zm{background:#333;display:flex;flex-direction:column}
+.zm-dual{flex:1;display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;background:#333}
+.zm-screen{width:calc((100% - 48px) / 2);aspect-ratio:1280/800;max-height:100%;position:relative;border-radius:6px;overflow:hidden;background:#f8f8f8;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.zm-scr-bg{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.zm-overlay{position:absolute;z-index:2}
+.zm-cr-card{left:49.69%;top:16%;width:22.81%;height:72%;background:#FFF0F0;border-radius:12px;border:1px solid #ffe0e0;display:none;flex-direction:column;overflow:hidden;font-family:'Pretendard',-apple-system,sans-serif;z-index:3}
+.zm-cr-card.show{display:flex}
+.zm-cr-body{flex:1;padding:20px 20px 0}
+.zm-cr-type{font-size:11px;font-weight:500;color:#888;line-height:22px}
+.zm-cr-table{font-size:18px;font-weight:700;color:#333;line-height:36px}
+.zm-cr-time{font-size:11px;color:#999;line-height:22px;margin-bottom:16px}
+.zm-cr-divider{width:100%;height:1px;background:#eee;margin-bottom:16px}
+.zm-cr-label{font-size:11px;color:#999;line-height:22px}
+.zm-cr-value{font-size:12px;font-weight:700;color:#333;line-height:24px}
+.zm-cr-footer{padding:20px}
+.zm-cr-btn{width:100%;height:52px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#333;color:#fff}
+.zm-cr-btn:hover{opacity:.85}
+
+/* ── Snackbar ── */
+.snk{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);padding:24px 40px;border-radius:12px;font-size:24px;font-weight:500;line-height:28px;color:#fff;z-index:9999;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:12px;font-family:'Pretendard',-apple-system,sans-serif;opacity:0;transition:opacity .3s ease}
+.snk.show{opacity:1}
+.snk.ok{background:rgba(0,0,0,.9)}
+.snk.warn{background:rgba(0,0,0,.9)}
+.snk.success{background:rgba(0,0,0,.9)}
+.snk.bo-success{top:24px;left:50%;transform:translateX(-50%);background:#4CAF50;font-size:16px;padding:14px 28px;border-radius:8px;gap:8px}
+.snk-icon{width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+
+/* ── Flow indicator ── */
+.flow-indicator{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(0,0,0,.7);border-radius:20px;z-index:8000}
+.flow-dot{width:8px;height:8px;border-radius:50%;background:#555;transition:background .3s}
+.flow-dot.active{background:#F72E13}
+.flow-label{font-size:11px;color:#aaa;margin-left:8px}
+</style>
+</head>
+<body>
+
+<!-- App Switcher Nav -->
+<div class="app-nav">
+  <div class="app-tab" data-app="bo" onclick="switchApp('bo')">Backoffice<span class="new-badge">NEW</span></div>
+  <div class="app-tab" data-app="zu" onclick="switchApp('zu')">Z-User<span class="new-badge">NEW</span></div>
+  <div class="app-tab" data-app="zm" onclick="switchApp('zm')">Z-Manager<span class="new-badge">NEW</span></div>
+  <div class="nav-spacer"></div>
+  <div class="proto-label">INTERACTIVE PROTOTYPE</div>
+</div>
+
+<!-- Screen Frame -->
+<div class="screen-wrap">
+<div class="screen-frame">
+
+<!-- ════════════════════════════════════════ -->
+<!-- Z-Backoffice                            -->
+<!-- ════════════════════════════════════════ -->
+<div class="app-screen bo" id="appBo">
+  <div class="bo-header"><h1>Z-Backoffice — General Settings</h1></div>
+  <div class="bo-body">
+    <div class="bo-left">
+      <div class="bo-section-title">Feature Settings</div>
+      <div class="bo-grid">
+        <!-- Call Server -->
+        <div class="bo-card">
+          <div class="bo-card-top">
+            <div class="bo-card-icon"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+            <div class="toggle-wrap on"><div class="toggle-knob"></div></div>
+          </div>
+          <div class="bo-card-name">Call Server</div>
+        </div>
+        <!-- Order History -->
+        <div class="bo-card">
+          <div class="bo-card-top">
+            <div class="bo-card-icon"><svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg></div>
+            <div class="toggle-wrap" id="tglOH" onclick="toggleOH()"><div class="toggle-knob"></div></div>
+          </div>
+          <div class="bo-card-name">Order History</div>
+          <div class="bo-card-desc">Display Order History Button in the home.<br>Not applied to tables with prepaid enabled.</div>
+        </div>
+        <!-- Table Change Password -->
+        <div class="bo-card">
+          <div class="bo-card-top">
+            <div class="bo-card-icon"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg></div>
+            <div class="toggle-wrap on"><div class="toggle-knob"></div></div>
+          </div>
+          <div class="bo-card-name">Table Change Password</div>
+          <div class="bo-card-desc">Require password when changing tables.<br>Not applied when Order Book is ON.</div>
+        </div>
+        <!-- Check Requests -->
+        <div class="bo-card">
+          <div class="bo-card-top">
+            <div class="bo-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM6 20V4h5v7h7v9H6zm2-6h8v2H8v-2zm0-3h8v2H8v-2z"/></svg></div>
+            <div class="toggle-wrap" id="tglCR" onclick="toggleCR()"><div class="toggle-knob"></div></div>
+          </div>
+          <div class="bo-card-name">Check Requests</div>
+          <div class="bo-card-desc">When disabled, "Get Offers" replaces "Ask for the Check" in the Z-User Order History popup.</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="bo-right">
+      <div class="bo-section-title">PIN Settings</div>
+      <div class="bo-pin-section">
+        <div class="bo-pin-text">Enter the manager PIN to edit</div>
+        <button class="bo-pin-btn">
+          <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          Edit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- Z-User (image-based)                    -->
+<!-- ════════════════════════════════════════ -->
+<div class="app-screen zu" id="appZu">
+  <img src="images/zu-menu-base.png" class="zu-bg" alt="">
+  <div class="zu-oh-cover" id="zuOhCover"></div>
+  <div class="zu-anno-cover"></div>
+  <div class="zu-btn zu-btn-lang"></div>
+  <div class="zu-btn zu-btn-call"></div>
+  <div class="zu-btn zu-btn-oh" id="ohBtn" onclick="openOrderHistory()"></div>
+  <div class="zu-btn zu-btn-cart"></div>
+
+  <!-- Order History Popup -->
+  <div class="oh-overlay" id="ohOverlay">
+    <div class="oh-popup-wrap">
+      <img src="images/zu-oh-on.png" id="ohBgOn" class="oh-bg-img" alt="">
+      <img src="images/zu-oh-off.png" id="ohBgOff" class="oh-bg-img" style="display:none" alt="">
+      <div class="oh-close-hot" onclick="closeOrderHistory()"></div>
+      <div class="oh-action-hot" id="ohActionHot" onclick="handleOhAction()"></div>
+    </div>
+  </div>
+
+  <!-- Promo Popup -->
+  <div class="promo-overlay" id="promoOverlay">
+    <div class="promo-wrap">
+      <img src="images/zu-promo.png" class="promo-bg-img" alt="">
+      <div class="promo-close-hot" onclick="closePromo()"></div>
+      <div class="promo-check-hot" onclick="togglePromoCheck()">
+        <div class="promo-chk-vis" id="promoChk"></div>
+      </div>
+      <input type="text" class="promo-phone-input" placeholder="Enter the phone number" id="promoPhone">
+      <div class="promo-submit-hot" onclick="submitPromo()"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- Z-Manager (image-based)                 -->
+<!-- ════════════════════════════════════════ -->
+<div class="app-screen zm" id="appZm">
+  <div class="zm-dual">
+    <!-- ▸ Left: Dining -->
+    <div class="zm-screen">
+      <img src="images/zm-dining-1.png" id="zmDining1" class="zm-scr-bg" alt="">
+      <img src="images/zm-dining-2.png" id="zmDining2" class="zm-scr-bg" style="display:none" alt="">
+    </div>
+    <!-- ▸ Right: Service Requests -->
+    <div class="zm-screen">
+      <img src="images/zm-sr-1.png" id="zmSr1" class="zm-scr-bg" alt="">
+      <img src="images/zm-sr-2.png" id="zmSr2" class="zm-scr-bg" style="display:none" alt="">
+      <div class="zm-overlay zm-cr-card" id="zmCrCard">
+        <div class="zm-cr-body">
+          <div class="zm-cr-type">Check request</div>
+          <div class="zm-cr-table" id="zmCrTable">T10</div>
+          <div class="zm-cr-time" id="zmCrTime"></div>
+          <div class="zm-cr-divider"></div>
+          <div class="zm-cr-label">Subtotal</div>
+          <div class="zm-cr-value">$1,534.64</div>
+        </div>
+        <div class="zm-cr-footer">
+          <button class="zm-cr-btn" onclick="handleCheckOk()">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Planning Note (Z-Manager) -->
+<div class="plan-note" id="planNoteZm">
+  <div class="plan-note-title">Planning Note</div>
+  <div class="plan-note-body">
+    <ul>
+      <li><b>Check Request 알림</b><br>[OK] 누르면 티켓 사라짐</li>
+      <li>[OK] 눌러도 다이닝 빨간색 테이블은 유지됨 (변하는 조건은 기존 정책 유지)</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- screen-frame -->
+
+<!-- Planning Note (Backoffice) -->
+<div class="plan-note" id="planNoteBo">
+  <div class="plan-note-title">Planning Note</div>
+  <div class="plan-note-body">
+    <ul>
+      <li>Prepaid (일반, QR) 매장은 기존과 똑같이 Order history 노출 없이 진행 (토글이 on되어도 선결제 테이블은 자동으로 order history 히든됨)</li>
+      <li>Z-User 리프레쉬 시 적용</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Planning Note (Z-User) -->
+<div class="plan-note" id="planNoteZu">
+  <div class="plan-note-title">Planning Note</div>
+  <div class="plan-note-body">
+    <ul>
+      <li><b>Ask for the check</b><br>주문이 없는 상태 → 버튼 비활성화</li>
+      <li><b>Get offers</b><br>주문이 없는 상태여도 → 버튼 활성화</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- screen-wrap -->
+
+<!-- Snackbar -->
+<div class="snk" id="snk"></div>
+
+<!-- Flow Indicator -->
+<div class="flow-indicator">
+  <div class="flow-dot" data-step="bo"></div>
+  <div class="flow-dot" data-step="zu"></div>
+  <div class="flow-dot" data-step="zm"></div>
+  <div class="flow-label" id="flowLabel">Z-Backoffice</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════ */
+const S = {
+  app: 'bo',
+  mgrTab: 'dining',
+  orderHistoryOn: true,
+  checkRequestsOn: true,
+  promoChecked: false,
+  checkRequested: false,
+  checkRequestTable: null,
+  diningRed: false,
+  serviceRequests: [
+    { id: 1, type: 'service', table: 'T23', time: '06:49:29 PM', items: [
+      {qty:1,name:'Napkins'},{qty:1,name:'More bread'},{qty:2,name:'More butter'},
+      {qty:6,name:'Chopsticks'},{qty:10,name:'Tissue'},{qty:5,name:'Water'},{qty:100,name:'Employee call'}
+    ]},
+    { id: 2, type: 'receipt', table: 'Table 300', time: '08:11:39 PM', order:'#Z0001', total:'$110.00', tender:'Credit card', card:'Visa 4321' },
+  ]
+};
+
+/* ══════════════════════════════════════════
+   APP SWITCH
+   ══════════════════════════════════════════ */
+function switchApp(app) {
+  S.app = app;
+  document.querySelectorAll('.app-tab').forEach(t=>{
+    t.classList.toggle('active', t.dataset.app===app);
+    if(t.dataset.app===app) t.classList.remove('has-new');
+  });
+  document.querySelectorAll('.app-screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('app'+app.charAt(0).toUpperCase()+app.slice(1)).classList.add('active');
+  document.querySelectorAll('.flow-dot').forEach(d=>d.classList.toggle('active', d.dataset.step===app));
+  document.getElementById('flowLabel').textContent = {bo:'Z-Backoffice',zu:'Z-User',zm:'Z-Manager'}[app];
+  document.querySelectorAll('.oh-overlay,.promo-overlay').forEach(e=>e.classList.remove('open'));
+  document.getElementById('planNoteBo').classList.toggle('visible', app==='bo');
+  document.getElementById('planNoteZu').classList.toggle('visible', app==='zu');
+  document.getElementById('planNoteZm').classList.toggle('visible', app==='zm');
+  document.querySelector('.screen-frame').classList.toggle('expanded', app==='zm');
+  if(app==='zm'){renderMgr();}
+  if(app==='zu'){renderZuBottom();}
+}
+
+function markNew(app) {
+  if(S.app===app) return;
+  const tab = document.querySelector(`.app-tab[data-app="${app}"]`);
+  if(tab) tab.classList.add('has-new');
+}
+
+/* ══════════════════════════════════════════
+   BACKOFFICE TOGGLES
+   ══════════════════════════════════════════ */
+function toggleOH() {
+  S.orderHistoryOn = !S.orderHistoryOn;
+  renderToggle('tglOH', S.orderHistoryOn);
+  renderZuBottom();
+  markNew('zu');
+  snk('Success, update Store Options !!', 'success');
+}
+
+function toggleCR() {
+  S.checkRequestsOn = !S.checkRequestsOn;
+  renderToggle('tglCR', S.checkRequestsOn);
+  markNew('zu');
+  snk('Success, update Store Options !!', 'success');
+}
+
+function renderToggle(id, on) {
+  const el = document.getElementById(id);
+  el.className = 'toggle-wrap ' + (on ? 'on' : 'off');
+}
+
+/* ══════════════════════════════════════════
+   Z-USER BOTTOM BAR
+   ══════════════════════════════════════════ */
+function renderZuBottom() {
+  document.getElementById('ohBtn').style.display = S.orderHistoryOn ? 'block' : 'none';
+  document.getElementById('zuOhCover').style.display = S.orderHistoryOn ? 'none' : 'block';
+}
+
+/* ══════════════════════════════════════════
+   ORDER HISTORY POPUP
+   ══════════════════════════════════════════ */
+function openOrderHistory() {
+  const hot = document.getElementById('ohActionHot');
+  if (S.checkRequestsOn) {
+    document.getElementById('ohBgOn').style.display = 'block';
+    document.getElementById('ohBgOff').style.display = 'none';
+    hot.className = 'oh-action-hot oh-action-on';
+  } else {
+    document.getElementById('ohBgOn').style.display = 'none';
+    document.getElementById('ohBgOff').style.display = 'block';
+    hot.className = 'oh-action-hot oh-action-off';
+  }
+  document.getElementById('ohOverlay').classList.add('open');
+}
+
+function closeOrderHistory() {
+  document.getElementById('ohOverlay').classList.remove('open');
+}
+
+function handleOhAction() {
+  if (S.checkRequestsOn) {
+    S.checkRequested = true;
+    S.diningRed = true;
+    S.checkRequestTable = 'T10';
+    S.serviceRequests.push({
+      id: Date.now(),
+      type: 'check',
+      table: 'T10',
+      time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+      subtotal: '$1,534.64'
+    });
+    markNew('zm');
+  }
+  closeOrderHistory();
+  openPromo();
+}
+
+/* ══════════════════════════════════════════
+   PROMO POPUP
+   ══════════════════════════════════════════ */
+function openPromo() {
+  S.promoChecked = false;
+  document.getElementById('promoChk').className = 'promo-chk-vis';
+  document.getElementById('promoPhone').value = '';
+  document.getElementById('promoOverlay').classList.add('open');
+}
+
+function closePromo() {
+  document.getElementById('promoOverlay').classList.remove('open');
+}
+
+function togglePromoCheck() {
+  S.promoChecked = !S.promoChecked;
+  document.getElementById('promoChk').className = 'promo-chk-vis' + (S.promoChecked ? ' checked' : '');
+}
+
+function submitPromo() {
+  const phone = document.getElementById('promoPhone').value.trim();
+  if (!S.promoChecked) { snk('Please agree to Terms and Conditions.', 'warn'); return; }
+  if (!phone) { snk('Please enter a valid phone number.', 'warn'); return; }
+  closePromo();
+  snk("Success! You'll now receive updates and exclusive offers.", 'success');
+}
+
+
+/* ══════════════════════════════════════════
+   Z-MANAGER (image-based)
+   ══════════════════════════════════════════ */
+function renderMgr() {
+  document.getElementById('zmDining1').style.display = S.diningRed ? 'none' : 'block';
+  document.getElementById('zmDining2').style.display = S.diningRed ? 'block' : 'none';
+  document.getElementById('zmSr1').style.display = 'block';
+  document.getElementById('zmSr2').style.display = 'none';
+  document.getElementById('zmCrCard').classList.toggle('show', S.checkRequested);
+  if (S.checkRequested) {
+    document.getElementById('zmCrTable').textContent = S.checkRequestTable;
+    const sr = S.serviceRequests.find(s => s.type === 'check');
+    if (sr) document.getElementById('zmCrTime').textContent = sr.time;
+  }
+}
+
+function handleCheckOk() {
+  S.serviceRequests = S.serviceRequests.filter(sr => sr.type !== 'check');
+  S.checkRequested = false;
+  document.getElementById('zmCrCard').classList.remove('show');
+  renderMgr();
+}
+
+/* ══════════════════════════════════════════
+   SNACKBAR
+   ══════════════════════════════════════════ */
+let snkT = null;
+function snk(msg, type) {
+  const el = document.getElementById('snk');
+  const warnIco = `<span class="snk-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#F72E13"/><path d="M9.5 9.5L18.5 18.5M18.5 9.5L9.5 18.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg></span>`;
+  const okIco = `<span class="snk-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#4CAF50"/><path d="M8 14.5L12 18.5L20 10.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+  const boIco = `<span class="snk-icon"><svg width="20" height="20" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#fff"/><path d="M8 14.5L12 18.5L20 10.5" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+  if (S.app === 'bo') {
+    el.innerHTML = boIco + msg;
+    el.className = 'snk show bo-success';
+  } else if (type === 'warn') {
+    el.innerHTML = warnIco + msg;
+    el.className = 'snk show ' + type;
+  } else {
+    el.innerHTML = okIco + msg;
+    el.className = 'snk show ' + type;
+  }
+  clearTimeout(snkT);
+  snkT = setTimeout(()=>{ el.className='snk'; }, 3500);
+}
+
+/* ══════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════ */
+(function init(){
+  renderToggle('tglOH', S.orderHistoryOn);
+  renderToggle('tglCR', S.checkRequestsOn);
+  renderZuBottom();
+  switchApp('bo');
+})();
+</script>
+</body>
+</html>
